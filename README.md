@@ -1,9 +1,14 @@
 # Unidades no Google Maps — Hora do Pastel
 
-Site estático com duas abas: a conferência das unidades no Google Maps e a concorrência de cada loja ativa.
+Site estático de uso interno: conferência das unidades no Google Maps e concorrência ao redor de cada loja ativa.
 
 - `index.html`: a página
-- `dash-shim.js`: carrega os CSVs e desenha os gráficos
-- `data/`: os dados (`unidades-maps.csv`, `concorrentes.csv`)
+- `css/app.css`: tokens de cor (claro e escuro), layout e impressão
+- `js/main.js`: entrada; `js/data.js` (carga e resumos), `js/format.js` (números em pt-BR), `js/tabs.js` (abas, links, tema),
+  `js/ui.js` (tooltip, tabelas, estados, CSV), `js/views/` (uma por aba), `js/charts/` (um por gráfico)
+- `data/`: `unidades-maps.csv` e `concorrentes.csv`, gerados pelo pipeline (fora deste repositório)
 
-Não tem build. Para atualizar, troque os CSVs em `data/` e faça push: a Vercel publica sozinha.
+Links diretos: `#visao`, `#conferencia`, `#concorrencia`, `#loja-0002` (concorrência da loja 0002).
+
+Não tem build. Para atualizar os dados, rode o pipeline (`python3 build_data.py`), confira e faça push: a Vercel publica sozinha.
+Para ver localmente: `python3 -m http.server 8765` e abra `http://127.0.0.1:8765/`.

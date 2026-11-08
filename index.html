@@ -4,386 +4,212 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Unidades no Google Maps</title>
-<style>
-/* Dataviz reference palette: chart surface, ink, hairlines, status steps. One system sans throughout. */
-:root {
-  --color-bg: #f9f9f7; --color-panel: #fcfcfb; --color-fg: #0b0b0b; --color-fg-muted: #52514e;
-  --color-border-line: #e1e0d9; --color-ok: #0ca30c; --color-warn: #fab219; --color-bad: #d03b3b;
-  --cds-chart-muted: #b4b2aa; --cds-chart-grid: #e1e0d9; --cds-chart-axis: #c3c2b7; --cds-chart-reference: #898781;
-  --cds-surface-popover: #ffffff; --cds-border: rgba(11, 11, 11, .10); --cds-shadow-popover: 0 6px 20px rgba(11, 11, 11, .12);
-  --cds-text-secondary: #52514e;
-  --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-anthropic-serif: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --cds-font-size-caption: 0.8125rem; --cds-font-size-body: 0.9375rem; --cds-font-size-heading: 1.0625rem; --cds-font-size-title: 1.75rem;
-  --cds-font-weight-medium: 600;
-  --cds-gap-xs: 0.25rem; --cds-gap-sm: 0.5rem; --cds-gap-md: 0.875rem; --cds-gap-lg: 1.25rem; --cds-gap-xl: 2rem;
-  --cds-pad-xs: 0.3rem; --cds-pad-sm: 0.55rem; --cds-pad-md: 0.9rem; --cds-pad-lg: 1.15rem; --cds-pad-xl: 1.75rem;
-  --cds-radius: 8px; --cds-dur-slow: 240ms;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0d0d0d; --color-panel: #1a1a19; --color-fg: #f0efec; --color-fg-muted: #c3c2b7;
-    --color-border-line: #2c2c2a; --color-ok: #0ca30c; --color-warn: #fab219; --color-bad: #d03b3b;
-    --cds-chart-muted: #5f5e59; --cds-chart-grid: #2c2c2a; --cds-chart-axis: #383835; --cds-chart-reference: #898781;
-    --cds-surface-popover: #232322; --cds-border: rgba(255, 255, 255, .10); --cds-shadow-popover: 0 6px 20px rgba(0, 0, 0, .5);
-    --cds-text-secondary: #c3c2b7;
-    color-scheme: dark;
-  }
-}
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); }
-#dash-root { max-width: 82rem; margin-inline: auto; padding-block: 2rem 3rem;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.dash-select { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background-color: var(--color-panel);
-  border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
-.dash-select:focus-visible { outline: 2px solid var(--color-fg-muted); outline-offset: 1px; }
-.dash-skeleton { color: transparent; background: var(--cds-chart-grid); border-radius: var(--cds-radius); min-width: 2.5rem; display: inline-block; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
-
-
-/* Status (good / warning / critical) is reserved for the check result and always ships with an icon and a label.
-   The one categorical series is "Pastelaria" (dash.colors[0]); everything else is muted ink. */
-.hp { --hp-good: var(--color-ok); --hp-warn: var(--color-warn); --hp-crit: var(--color-bad); --hp-mute: var(--cds-chart-muted);
-  display: flex; flex-direction: column; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
-.hp-head h1 { font-family: var(--font-anthropic-sans); font-weight: 600; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
-.hp-sub { margin: var(--cds-gap-xs) 0 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.hp-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
-.hp-tab-btn { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: var(--cds-pad-sm) var(--cds-pad-md); color: var(--color-fg-muted); cursor: pointer; }
-.hp-tab-btn[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: 600; }
-.hp-tab-btn:hover { color: var(--color-fg); }
-.hp-tab-btn:focus-visible { outline: 2px solid var(--color-fg-muted); outline-offset: 2px; }
-.hp-panel { display: flex; flex-direction: column; gap: var(--cds-gap-xl); }
-.hp-take { margin: 0; font-size: var(--cds-font-size-body); max-width: 72ch; line-height: 1.55; }
-.hp .hp-take b { font-weight: 600; }
-.hp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: var(--cds-gap-md); }
-.hp-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
-.hp-tile-label { display: flex; align-items: center; gap: 0.375rem; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.hp-num { font-family: var(--font-anthropic-sans); font-weight: 600; font-size: var(--cds-font-size-title); line-height: 1.1; color: var(--color-fg); }
-.hp-tile-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.hp-ico { display: inline-grid; place-items: center; width: 1rem; height: 1rem; border-radius: 50%; font-size: 0.6875rem; font-weight: 700; line-height: 1; color: var(--color-panel); background: var(--st); flex: none; }
-.hp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
-.hp-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
-.hp-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
-.hp-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 72ch; }
-.hp-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); list-style: none; padding: 0; margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.hp-legend li { display: flex; align-items: center; gap: 0.375rem; }
-.hp-sw { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--st); flex: none; }
-.hp-sw.is-ring { background: transparent; box-shadow: inset 0 0 0 1.5px var(--color-fg); }
-.st-confere { --st: var(--hp-good); }
-.st-div { --st: var(--hp-warn); }
-.st-bad { --st: var(--hp-crit); }
-.st-wait { --st: var(--hp-mute); }
-.st-loja { --st: var(--color-fg); }
-.st-outro { --st: var(--hp-mute); }
-.hp-map { position: relative; min-height: 14rem; }
-.hp-bars { position: relative; min-height: 20rem; }
-.hp-cmap { position: relative; min-height: 22rem; }
-.hp-cbars { position: relative; min-height: 8rem; }
-.hp-week { position: relative; min-height: 13rem; }
-.hp-map svg, .hp-bars svg, .hp-cmap svg, .hp-cbars svg, .hp-week svg { display: block; overflow: visible; }
-.hp-map svg, .hp-cmap svg { overflow: hidden; }
-.hp-dot { fill: var(--st); stroke: var(--color-panel); stroke-width: 2; }
-.hp-hit { fill: transparent; cursor: pointer; outline: none; }
-.hp-hit:focus-visible { stroke: var(--color-fg); stroke-width: 1.5; }
-.hp-bar { fill: var(--st); }
-.hp-grat { fill: none; stroke: var(--cds-chart-grid); stroke-width: 1; }
-.hp-ring { fill: none; stroke: var(--cds-chart-reference); stroke-width: 1; stroke-dasharray: 3 4; }
-.hp-axis { stroke: var(--cds-chart-axis); stroke-width: 1; }
-.hp-grid-line { stroke: var(--cds-chart-grid); stroke-width: 1; }
-.hp-loja { fill: var(--color-fg); stroke: var(--color-panel); stroke-width: 2; }
-.hp-open { fill: var(--color-fg); }
-.hp-closed { fill: var(--color-panel); stroke: var(--color-fg); stroke-width: 1.5; }
-.hp-lbl { fill: var(--color-fg); font-size: 12px; font-family: var(--font-anthropic-sans); }
-.hp-lbl-strong { fill: var(--color-fg); font-size: 12px; font-weight: 600; font-family: var(--font-anthropic-sans); }
-.hp-lbl-muted { fill: var(--color-fg-muted); font-size: 11px; font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
-.hp-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg); max-width: 17rem; z-index: 2; display: flex; flex-direction: column; gap: 2px; }
-.hp-tip[hidden] { display: none; }
-.hp-tip-val { font-weight: 600; color: var(--color-fg); }
-.hp-tip-head { color: var(--cds-text-secondary); }
-.hp-tip-flag { display: flex; align-items: center; gap: 0.375rem; color: var(--color-fg); }
-.hp-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm) var(--cds-gap-md); }
-.hp-ctrl-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.hp-loja-select { min-width: min(100%, 16rem); }
-.hp-search { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); width: min(100%, 18rem); }
-.hp-search:focus-visible { outline: 2px solid var(--color-fg-muted); outline-offset: 1px; }
-.hp-table-wrap { overflow: auto; max-height: 38rem; }
-.hp-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
-.hp-table.is-wide { min-width: 78rem; }
-.hp-table.is-mid { min-width: 66rem; }
-.hp-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
-.hp-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
-.hp-table .num { text-align: right; }
-.hp-pill { display: inline-flex; align-items: center; gap: 0.375rem; white-space: nowrap; }
-.hp-pill::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--st); flex: none; }
-.hp-table td.hp-diff { font-weight: 600; background: color-mix(in srgb, var(--hp-warn) 16%, transparent); }
-.hp-fail { display: flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.hp-fail::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--color-bad); }
-.hp details { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.hp details summary { cursor: pointer; color: var(--color-fg); }
-.hp dl { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: var(--cds-gap-xs) var(--cds-gap-md); margin: var(--cds-gap-sm) 0 0; max-width: 60rem; }
-.hp dt { color: var(--color-fg); }
-.hp dd { margin: 0; }
-[data-dash-source-state=empty] { color: transparent; }
-[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
-@media (max-width: 34rem) { .hp dl { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 40rem) {
-  .hp { gap: var(--cds-gap-md); }
-  .hp-panel { gap: var(--cds-gap-lg); }
-  .hp-head h1 { font-size: 1.5rem; }
-  .hp-tabs { display: grid; grid-template-columns: 1fr 1fr; }
-  .hp-tab-btn { padding: var(--cds-pad-sm) var(--cds-pad-xs); text-align: center; font-size: var(--cds-font-size-caption); }
-  .hp-tools > * { flex: 1 1 100%; }
-  .hp-loja-select, .hp-search { width: 100%; min-width: 0; }
-  .hp-search { font-size: 1rem; }
-  .hp-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cds-gap-sm); }
-  .hp-tile { padding: var(--cds-pad-sm) var(--cds-pad-md); }
-  .hp-num { font-size: 1.5rem; }
-  .hp-card { padding: var(--cds-pad-md); }
-  .hp-cmap { min-height: 17rem; }
-  .hp-table-wrap { max-height: none; overflow: visible; }
-  .hp-table.is-wide, .hp-table.is-mid { min-width: 0; }
-  .hp-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .hp-table, .hp-table tbody, .hp-table tr, .hp-table td { display: block; width: 100%; }
-  .hp-table tr { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); margin-bottom: var(--cds-gap-sm); }
-  .hp-table td { border: 0; padding: 0.15rem 0; display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: var(--cds-gap-sm); overflow-wrap: anywhere; }
-  .hp-table td.num { text-align: left; }
-  .hp-table td::before { content: attr(data-label); color: var(--color-fg-muted); font-weight: 400; }
-  .hp-table td:empty { display: none; }
-  .hp-table td.hp-lead { display: block; font-weight: 600; font-size: var(--cds-font-size-body); padding-bottom: var(--cds-gap-xs); }
-  .hp-table td.hp-lead::before { content: none; }
-}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-<script src="dash-shim.js"></script>
+<meta name="description" content="Uso interno da rede Hora do Pastel: fichas no Google Maps e concorrência ao redor de cada loja.">
+<meta name="color-scheme" content="light dark">
+<title>Unidades no Google Maps · Hora do Pastel</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" href="data/unidades-maps.csv" as="fetch" crossorigin>
+<link rel="preload" href="data/concorrentes.csv" as="fetch" crossorigin>
+<link rel="stylesheet" href="css/app.css">
+<script src="js/tema-inicial.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<script type="module" src="js/main.js"></script>
 </head>
 <body>
-<div id="dash-root">
 <div class="hp">
-  <header class="hp-head" id="topo">
-    <h1>Unidades no Google Maps</h1>
-    <p class="hp-sub">Rede Hora do Pastel: fichas no Google Maps e pastelarias ao redor de cada loja. Buscas feitas em 8 de novembro de 2026.</p>
+  <header class="hp-head">
+    <div>
+      <h1>Unidades no Google Maps</h1>
+      <p class="hp-sub">Rede Hora do Pastel: fichas no Google Maps e pastelarias ao redor de cada loja. Buscas feitas em 8 de novembro de 2026.</p>
+    </div>
+    <div class="hp-actions">
+      <button class="hp-btn" type="button" id="hp-copiar"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1-1a2.8 2.8 0 014 4l-1 1M9 11.5l-1 1a2.8 2.8 0 01-4-4l1-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Copiar link</span></button>
+      <button class="hp-btn" type="button" id="hp-tema"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zm0 1.5v9a4.5 4.5 0 010-9z" fill="currentColor"/></svg><span>Tema</span></button>
+    </div>
   </header>
 
   <div class="hp-tabs" role="tablist" aria-label="Seções">
-    <button class="hp-tab-btn" type="button" role="tab" id="tab-conferencia" data-tab="conferencia" aria-controls="conferencia" aria-selected="true">Conferência no Maps</button>
-    <button class="hp-tab-btn" type="button" role="tab" id="tab-concorrencia" data-tab="concorrencia" aria-controls="concorrencia" aria-selected="false">Concorrência por loja</button>
+    <button class="hp-tab" type="button" role="tab" id="tab-conferencia" data-tab="conferencia" aria-controls="conferencia" aria-selected="true">Conferência no Maps</button>
+    <button class="hp-tab" type="button" role="tab" id="tab-concorrencia" data-tab="concorrencia" aria-controls="concorrencia" aria-selected="false" tabindex="-1">Concorrência por loja</button>
   </div>
 
-  <section class="hp-panel" id="conferencia" role="tabpanel" aria-labelledby="tab-conferencia">
-    <p class="hp-take">
-      <b data-draw="kpi" data-source="resumo" data-field="confere">—</b> das <b data-draw="kpi" data-source="resumo" data-field="planilha">—</b> unidades da planilha batem com o Google Maps.
-      <b data-draw="kpi" data-source="resumo" data-field="divergencia">—</b> têm telefone, endereço ou status diferente na ficha.
-      Unidades ativas sem ficha: <b data-draw="kpi" data-source="resumo" data-field="sem_ficha">—</b>.
-      Fichas com o nome da rede fora da planilha: <b data-draw="kpi" data-source="resumo" data-field="fora">—</b>.
+  <div id="hp-erro" class="hp-state is-error" role="alert" hidden></div>
+
+  <!-- Conferência -->
+  <section class="hp-panel" id="conferencia" role="tabpanel" aria-labelledby="tab-conferencia" tabindex="-1">
+    <p class="hp-take" id="conf-take">
+      <b data-k="confere" class="hp-skel">—</b> das <b data-k="planilha" class="hp-skel">—</b> unidades da planilha batem com o Google Maps.
+      <b data-k="divergencia" class="hp-skel">—</b> têm telefone, endereço ou status diferente na ficha.
+      Unidades ativas sem ficha: <b data-k="sem_ficha" class="hp-skel">—</b>.
+      Fichas com o nome da rede fora da planilha: <b data-k="fora" class="hp-skel">—</b>.
       Corrija as fichas no Perfil da Empresa no Google ou atualize a planilha.
     </p>
 
-    <section class="hp-tiles" aria-label="Resumo da conferência">
+    <section class="hp-tiles" id="conf-tiles" aria-label="Resumo da conferência">
       <div class="hp-tile">
         <span class="hp-tile-label">Unidades na planilha</span>
-        <span class="hp-num dash-skeleton" data-draw="kpi" data-source="resumo" data-field="planilha">—</span>
-        <span class="hp-tile-note"><span data-draw="kpi" data-source="resumo" data-field="desativadas">—</span> desativadas</span>
+        <span class="hp-num hp-skel" data-k="planilha">—</span>
+        <span class="hp-tile-note"><span data-k="desativadas">—</span> desativadas</span>
       </div>
       <div class="hp-tile">
-        <span class="hp-tile-label"><span class="hp-ico st-confere" aria-hidden="true">✓</span>Conferem com o Maps</span>
-        <span class="hp-num dash-skeleton" data-draw="kpi" data-source="resumo" data-field="confere">—</span>
+        <span class="hp-tile-label"><span class="hp-ico st-ok" aria-hidden="true">✓</span>Conferem com o Maps</span>
+        <span class="hp-num hp-skel" data-k="confere">—</span>
         <span class="hp-tile-note">Telefone e endereço iguais</span>
       </div>
       <div class="hp-tile">
-        <span class="hp-tile-label"><span class="hp-ico st-div" aria-hidden="true">!</span>Com divergência</span>
-        <span class="hp-num dash-skeleton" data-draw="kpi" data-source="resumo" data-field="divergencia">—</span>
+        <span class="hp-tile-label"><span class="hp-ico st-warn" aria-hidden="true">!</span>Com divergência</span>
+        <span class="hp-num hp-skel" data-k="divergencia">—</span>
         <span class="hp-tile-note">Telefone, endereço ou status</span>
       </div>
       <div class="hp-tile">
-        <span class="hp-tile-label"><span class="hp-ico st-bad" aria-hidden="true">×</span>Sem ficha no Maps</span>
-        <span class="hp-num dash-skeleton" data-draw="kpi" data-source="resumo" data-field="sem_ficha">—</span>
+        <span class="hp-tile-label"><span class="hp-ico st-crit" aria-hidden="true">×</span>Sem ficha no Maps</span>
+        <span class="hp-num hp-skel" data-k="sem_ficha">—</span>
         <span class="hp-tile-note">Só unidades ativas</span>
       </div>
       <div class="hp-tile">
-        <span class="hp-tile-label"><span class="hp-ico st-bad" aria-hidden="true">×</span>Fichas fora da planilha</span>
-        <span class="hp-num dash-skeleton" data-draw="kpi" data-source="resumo" data-field="fora">—</span>
+        <span class="hp-tile-label"><span class="hp-ico st-serious" aria-hidden="true">!</span>Fichas fora da planilha</span>
+        <span class="hp-num hp-skel" data-k="fora">—</span>
         <span class="hp-tile-note">Usam o nome da rede</span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Nota média no Google</span>
-        <span class="hp-num dash-skeleton" data-draw="kpi" data-source="resumo" data-field="nota_media">—</span>
-        <span class="hp-tile-note"><span data-draw="kpi" data-source="resumo" data-field="avaliacoes">—</span> avaliações somadas</span>
+        <span class="hp-num hp-skel" data-k="nota_media">—</span>
+        <span class="hp-tile-note"><span data-k="avaliacoes">—</span> avaliações somadas</span>
       </div>
     </section>
 
     <div class="hp-grid">
-      <section class="hp-card" id="mapa">
-        <h2>Onde estão as unidades</h2>
+      <section class="hp-card" aria-labelledby="h-conf-mapa">
+        <h2 id="h-conf-mapa">Onde estão as unidades</h2>
         <p class="hp-note">Posição de cada unidade pela planilha, colorida pela situação no Google Maps. A ficha de Canoas que não está na planilha aparece só na tabela.</p>
         <ul class="hp-legend">
-          <li class="st-confere"><span class="hp-sw"></span>Confere</li>
-          <li class="st-div"><span class="hp-sw"></span>Divergência</li>
-          <li class="st-bad"><span class="hp-sw"></span>Não encontrada ou fora da planilha</li>
-          <li class="st-wait"><span class="hp-sw"></span>Desativada</li>
+          <li><span class="hp-ico st-ok" aria-hidden="true">✓</span>Confere</li>
+          <li><span class="hp-ico st-warn" aria-hidden="true">!</span>Divergência</li>
+          <li><span class="hp-ico st-crit" aria-hidden="true">×</span>Não encontrada</li>
+          <li><span class="hp-ico st-off" aria-hidden="true">–</span>Desativada</li>
         </ul>
-        <div class="hp-map" data-draw="map" data-source="unidades"></div>
+        <div class="hp-chart ch-units-map" id="conf-mapa"></div>
+        <details class="hp-alt" id="conf-mapa-alt"></details>
       </section>
 
-      <section class="hp-card" id="avaliacoes">
-        <h2>Avaliações no Google por unidade</h2>
+      <section class="hp-card" aria-labelledby="h-conf-barras">
+        <h2 id="h-conf-barras">Avaliações no Google por unidade</h2>
         <p class="hp-note">Total de avaliações de cada ficha, com a nota ao lado.</p>
         <ul class="hp-legend">
-          <li class="st-confere"><span class="hp-sw"></span>Confere</li>
-          <li class="st-div"><span class="hp-sw"></span>Divergência</li>
-          <li class="st-bad"><span class="hp-sw"></span>Fora da planilha</li>
+          <li><span class="hp-ico st-ok" aria-hidden="true">✓</span>Confere</li>
+          <li><span class="hp-ico st-warn" aria-hidden="true">!</span>Divergência</li>
+          <li><span class="hp-ico st-serious" aria-hidden="true">!</span>Fora da planilha</li>
         </ul>
-        <div class="hp-bars" data-draw="bars" data-source="unidades"></div>
+        <div class="hp-chart ch-units-bars" id="conf-barras"></div>
+        <details class="hp-alt" id="conf-barras-alt"></details>
       </section>
     </div>
 
-    <section class="hp-card" id="tabela">
-      <h2>Unidade por unidade</h2>
+    <section class="hp-card" aria-labelledby="h-conf-tabela">
+      <h2 id="h-conf-tabela">Unidade por unidade</h2>
       <p class="hp-note">Destacado, o telefone ou endereço da ficha que não bate com a planilha. Primeiro as unidades sem ficha, depois as divergências.</p>
       <div class="hp-tools">
-        <input class="hp-search" id="hp-busca" data-search="rows" type="search" placeholder="Buscar unidade, cidade, telefone…" aria-label="Buscar unidades">
+        <input class="hp-search" id="conf-busca" type="search" placeholder="Buscar unidade, cidade, telefone…" aria-label="Buscar unidades">
       </div>
-      <div class="hp-table-wrap">
-        <table class="hp-table is-wide" data-source="unidades" data-row-key="unidade">
-          <thead>
-            <tr>
-              <th data-field="codigo">Código</th>
-              <th data-field="unidade">Unidade</th>
-              <th data-field="situacao">Situação</th>
-              <th data-field="status_rede">Na rede</th>
-              <th data-field="alertas">O que olhar</th>
-              <th data-field="endereco_planilha">Endereço na planilha</th>
-              <th data-field="endereco_maps">Endereço no Maps</th>
-              <th data-field="telefone_planilha">Telefone na planilha</th>
-              <th data-field="telefone_maps">Telefone no Maps</th>
-              <th data-field="nota" class="num">Nota</th>
-              <th data-field="avaliacoes" class="num">Avaliações</th>
-              <th data-field="negativas_pct" class="num">Negativas (1–2★)</th>
-              <th data-field="dias_abertos" class="num">Dias abertos</th>
-              <th data-field="tem_site">Site</th>
-              <th data-field="tem_instagram">Instagram</th>
-            </tr>
-          </thead>
-          <tbody data-draw="rows"></tbody>
-        </table>
-      </div>
+      <div class="hp-table-wrap"><table id="conf-tabela" class="is-wide"></table></div>
     </section>
   </section>
 
-  <section class="hp-panel" id="concorrencia" role="tabpanel" aria-labelledby="tab-concorrencia" hidden>
+  <!-- Concorrência -->
+  <section class="hp-panel" id="concorrencia" role="tabpanel" aria-labelledby="tab-concorrencia" tabindex="-1" hidden>
     <div class="hp-tools">
-      <label class="hp-ctrl-label" for="hp-loja">Loja</label>
-      <select class="dash-select hp-loja-select" id="hp-loja" data-draw="lojas" data-source="unidades" aria-label="Loja"></select>
+      <label class="hp-ctrl-label" for="conc-loja">Loja</label>
+      <select class="hp-select" id="conc-loja"></select>
       <span class="hp-note">Só lojas ativas. Concorrentes a até 5 km do endereço da planilha.</span>
     </div>
 
-    <p class="hp-take">
-      Há <b data-draw="cv" data-source="conc_resumo" data-field="pastelarias_1km">—</b> pastelarias a até 1 km da loja e <b data-draw="cv" data-source="conc_resumo" data-field="pastelarias_3km">—</b> a até 3 km.
-      Em número de avaliações no Google, a loja fica em <b data-draw="cv" data-source="conc_resumo" data-field="posicao">—</b>º lugar entre os <b data-draw="cv" data-source="conc_resumo" data-field="total_3km">—</b> estabelecimentos a até 3 km, contando ela.
-      O concorrente com mais avaliações por perto é <b data-draw="cv" data-source="conc_resumo" data-field="lider_nome">—</b>, com <b data-draw="cv" data-source="conc_resumo" data-field="lider_avaliacoes">—</b>.
-      Anunciam com pixel do Meta ou tag do Google Ads: <b data-draw="cv" data-source="conc_resumo" data-field="anunciam_3km">—</b>.
+    <p class="hp-take" id="conc-take" aria-live="polite">
+      Há <b data-k="pastelarias_1km">—</b> pastelarias a até 1 km da loja e <b data-k="pastelarias_raio">—</b> a até 3 km.
+      Em número de avaliações no Google, a loja fica em <b data-k="posicao">—</b>º lugar entre os <b data-k="total">—</b> estabelecimentos a até 3 km, contando ela.
+      O concorrente com mais avaliações por perto é <b data-k="lider_nome">—</b>, com <b data-k="lider_avaliacoes">—</b>.
+      Anunciam com pixel do Meta ou tag do Google Ads: <b data-k="anunciam">—</b>.
     </p>
 
-    <section class="hp-tiles" aria-label="Resumo da concorrência">
+    <section class="hp-tiles" id="conc-tiles" aria-label="Resumo da concorrência">
       <div class="hp-tile">
         <span class="hp-tile-label">Pastelarias a até 1 km</span>
-        <span class="hp-num dash-skeleton" data-draw="cv" data-source="conc_resumo" data-field="pastelarias_1km">—</span>
-        <span class="hp-tile-note"><span data-draw="cv" data-source="conc_resumo" data-field="ate_1km">—</span> estabelecimentos no total</span>
+        <span class="hp-num hp-skel" data-k="pastelarias_1km">—</span>
+        <span class="hp-tile-note"><span data-k="ate_1km">—</span> estabelecimentos no total</span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Pastelarias a até 3 km</span>
-        <span class="hp-num dash-skeleton" data-draw="cv" data-source="conc_resumo" data-field="pastelarias_3km">—</span>
-        <span class="hp-tile-note"><span data-draw="cv" data-source="conc_resumo" data-field="ate_3km">—</span> estabelecimentos no total</span>
+        <span class="hp-num hp-skel" data-k="pastelarias_raio">—</span>
+        <span class="hp-tile-note"><span data-k="ate_raio">—</span> estabelecimentos no total</span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Nota da loja</span>
-        <span class="hp-num dash-skeleton" data-draw="cv" data-source="conc_resumo" data-field="nota_loja">—</span>
-        <span class="hp-tile-note">Média a até 3 km: <span data-draw="cv" data-source="conc_resumo" data-field="nota_media_3km">—</span></span>
+        <span class="hp-num hp-skel" data-k="nota_loja">—</span>
+        <span class="hp-tile-note">Média a até 3 km: <span data-k="nota_media">—</span></span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Avaliações da loja</span>
-        <span class="hp-num dash-skeleton" data-draw="cv" data-source="conc_resumo" data-field="avaliacoes_loja">—</span>
-        <span class="hp-tile-note">Posição: <span data-draw="cv" data-source="conc_resumo" data-field="posicao">—</span>º de <span data-draw="cv" data-source="conc_resumo" data-field="total_3km">—</span></span>
+        <span class="hp-num hp-skel" data-k="avaliacoes_loja">—</span>
+        <span class="hp-tile-note">Posição: <span data-k="posicao">—</span>º de <span data-k="total">—</span></span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Avaliações negativas</span>
-        <span class="hp-num dash-skeleton"><span data-draw="cv" data-source="conc_resumo" data-field="neg_loja">—</span>%</span>
-        <span class="hp-tile-note">1 e 2 estrelas. Vizinhos: <span data-draw="cv" data-source="conc_resumo" data-field="neg_media_3km">—</span>%</span>
+        <span class="hp-num hp-skel" data-k="neg_loja">—</span>
+        <span class="hp-tile-note">1 e 2 estrelas. Vizinhos: <span data-k="neg_media">—</span></span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Anunciam online</span>
-        <span class="hp-num dash-skeleton" data-draw="cv" data-source="conc_resumo" data-field="anunciam_3km">—</span>
-        <span class="hp-tile-note">Meta ou Google, de <span data-draw="cv" data-source="conc_resumo" data-field="com_site_3km">—</span> com site</span>
+        <span class="hp-num hp-skel" data-k="anunciam">—</span>
+        <span class="hp-tile-note">Meta ou Google, de <span data-k="com_site">—</span> com site</span>
       </div>
     </section>
 
     <div class="hp-grid">
-      <section class="hp-card" id="vizinhanca">
-        <h2>Vizinhança da loja</h2>
+      <section class="hp-card" aria-labelledby="h-conc-mapa">
+        <h2 id="h-conc-mapa">Vizinhança da loja</h2>
         <p class="hp-note">Anéis a 1, 3 e 5 km do endereço da loja. O tamanho do ponto acompanha o número de avaliações.</p>
         <ul class="hp-legend">
-          <li class="st-loja"><span class="hp-sw"></span>Hora do Pastel</li>
-          <li><span class="hp-sw hp-sw-pastel"></span>Pastelaria</li>
-          <li class="st-outro"><span class="hp-sw"></span>Outro (lanchonete, padaria, restaurante…)</li>
+          <li><span class="hp-sw sw-loja"></span>Hora do Pastel</li>
+          <li><span class="hp-sw sw-pastel"></span>Pastelaria</li>
+          <li><span class="hp-sw sw-outro"></span>Outro (lanchonete, padaria, restaurante…)</li>
         </ul>
-        <div class="hp-cmap" data-draw="conc-map" data-source="unidades concorrentes"></div>
+        <div class="hp-chart ch-conc-map" id="conc-mapa"></div>
       </section>
 
-      <section class="hp-card" id="mais-avaliados">
-        <h2>Mais avaliados a até 3 km</h2>
+      <section class="hp-card" aria-labelledby="h-conc-barras">
+        <h2 id="h-conc-barras">Mais avaliados a até 3 km</h2>
         <p class="hp-note">Os estabelecimentos com mais avaliações no Google perto da loja, com a nota ao lado.</p>
         <ul class="hp-legend">
-          <li class="st-loja"><span class="hp-sw"></span>Hora do Pastel</li>
-          <li><span class="hp-sw hp-sw-pastel"></span>Pastelaria</li>
-          <li class="st-outro"><span class="hp-sw"></span>Outro</li>
+          <li><span class="hp-sw is-bar sw-loja"></span>Hora do Pastel</li>
+          <li><span class="hp-sw is-bar sw-pastel"></span>Pastelaria</li>
+          <li><span class="hp-sw is-bar sw-outro"></span>Outro</li>
         </ul>
-        <div class="hp-cbars" data-draw="conc-bars" data-source="unidades concorrentes"></div>
+        <div class="hp-chart ch-conc-bars" id="conc-barras"></div>
+        <details class="hp-alt" id="conc-barras-alt"></details>
       </section>
     </div>
 
-    <section class="hp-card" id="dias">
-      <h2>Quem abre em cada dia</h2>
+    <section class="hp-card" aria-labelledby="h-conc-dias">
+      <h2 id="h-conc-dias">Quem abre em cada dia</h2>
       <p class="hp-note">Estabelecimentos a até 3 km abertos em cada dia da semana, pelo horário no Google. Abaixo, se a loja abre.</p>
       <ul class="hp-legend">
-        <li class="st-loja"><span class="hp-sw"></span>Loja abre</li>
+        <li><span class="hp-sw sw-loja"></span>Loja abre</li>
         <li><span class="hp-sw is-ring"></span>Loja fechada</li>
       </ul>
-      <div class="hp-week" data-draw="conc-week" data-source="unidades concorrentes"></div>
+      <div class="hp-chart ch-conc-week" id="conc-semana"></div>
+      <details class="hp-alt" id="conc-semana-alt"></details>
     </section>
 
-    <section class="hp-card" id="concorrentes">
-      <h2>Concorrentes da loja</h2>
+    <section class="hp-card" aria-labelledby="h-conc-tabela">
+      <h2 id="h-conc-tabela">Concorrentes da loja</h2>
       <p class="hp-note">Do mais perto para o mais longe. Distância em linha reta.</p>
       <div class="hp-tools">
-        <input class="hp-search" id="hp-busca-conc" data-search="conc-rows" type="search" placeholder="Buscar nome, categoria, endereço…" aria-label="Buscar concorrentes">
+        <input class="hp-search" id="conc-busca" type="search" placeholder="Buscar nome, categoria, endereço…" aria-label="Buscar concorrentes">
       </div>
-      <div class="hp-table-wrap">
-        <table class="hp-table is-mid" data-source="concorrentes" data-row-key="codigo,place_id">
-          <thead>
-            <tr>
-              <th data-field="nome">Nome</th>
-              <th data-field="tipo">Tipo</th>
-              <th data-field="categoria">Categoria no Google</th>
-              <th data-field="distancia_km" class="num">Distância (km)</th>
-              <th data-field="nota" class="num">Nota</th>
-              <th data-field="avaliacoes" class="num">Avaliações</th>
-              <th data-field="negativas_pct" class="num">Negativas (1–2★)</th>
-              <th data-field="dias_abertos" class="num">Dias abertos</th>
-              <th data-field="anuncia">Anuncia</th>
-              <th data-field="redes">Redes sociais</th>
-              <th data-field="endereco">Endereço</th>
-            </tr>
-          </thead>
-          <tbody data-draw="conc-rows"></tbody>
-        </table>
-      </div>
+      <div class="hp-table-wrap"><table id="conc-tabela" class="is-mid"></table></div>
     </section>
   </section>
 
-  <details>
+  <details class="hp-method">
     <summary>Como os dados foram levantados</summary>
     <dl>
       <dt>Fichas da rede</dt>
@@ -406,506 +232,8 @@ body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-fami
       <dd>CNPJ, razão social, e-mails e nomes de responsáveis da planilha, e o texto das avaliações, não foram incluídos.</dd>
     </dl>
   </details>
-</div>
 
-<script>
-window.hpSit = {
-  'Confere': 'st-confere',
-  'Divergência': 'st-div',
-  'Não encontrada': 'st-bad',
-  'Fora da planilha': 'st-bad',
-  'Aguardando abertura': 'st-wait',
-  'Desativada': 'st-wait'
-};
-window.hpIcon = { 'st-confere': '✓', 'st-div': '!', 'st-bad': '×', 'st-wait': '–' };
-window.hpOrder = ['Não encontrada', 'Fora da planilha', 'Divergência', 'Aguardando abertura', 'Confere', 'Desativada'];
-window.hpDias = [['seg', 'Seg'], ['ter', 'Ter'], ['qua', 'Qua'], ['qui', 'Qui'], ['sex', 'Sex'], ['sab', 'Sáb'], ['dom', 'Dom']];
-window.hpNf1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-window.hpNf2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-window.hpNf0 = new Intl.NumberFormat('pt-BR');
-window.hpShort = (name) => name.replace(/^Porto Alegre - /, 'POA · ').replace(/ - /, ' · ');
-window.hpClip = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
-window.hpNameMax = (w) => (w < 420 ? 16 : w < 640 ? 22 : 28);
-window.hpFail = (el) => { const f = document.createElement('div'); f.className = 'hp-fail'; f.textContent = 'Não carregou'; el.replaceChildren(f); };
-window.hpPastel = () => (dash.colors && dash.colors[0]) || 'var(--color-fg-muted)';
-window.hpQuery = {};
-window.hpLabelRows = (tb) => [...tb.closest('table').querySelectorAll('th[data-field]')].map((th) => th.textContent.trim());
-
-/* Horizontal bar: square at the baseline, 4px rounded data end. */
-window.hpBarPath = (x0, y, x1, h) => {
-  const w = Math.max(0, x1 - x0);
-  const r = Math.min(4, h / 2, w);
-  return `M${x0},${y}H${x0 + w - r}Q${x0 + w},${y} ${x0 + w},${y + r}V${y + h - r}Q${x0 + w},${y + h} ${x0 + w - r},${y + h}H${x0}Z`;
-};
-/* Column: square at the baseline (bottom), 4px rounded top. */
-window.hpColPath = (x, y0, y1, w) => {
-  const h = Math.max(0, y0 - y1);
-  const r = Math.min(4, w / 2, h);
-  return `M${x},${y0}V${y0 - h + r}Q${x},${y0 - h} ${x + r},${y0 - h}H${x + w - r}Q${x + w},${y0 - h} ${x + w},${y0 - h + r}V${y0}Z`;
-};
-
-/* Tooltip: values lead, names follow. Mouse hovers; touch taps; keyboard focuses. */
-window.hpTip = (host) => {
-  const tip = document.createElement('div');
-  tip.className = 'hp-tip';
-  tip.hidden = true;
-  host.append(tip);
-  const show = (lines, x, y) => {
-    tip.replaceChildren(...lines.map(([cls, text, icon]) => {
-      const d = document.createElement('div');
-      if (cls) d.className = cls;
-      if (icon) { const i = document.createElement('span'); i.className = 'hp-ico ' + icon; i.textContent = hpIcon[icon] || ''; i.setAttribute('aria-hidden', 'true'); d.append(i); }
-      d.append(document.createTextNode(text));
-      return d;
-    }));
-    tip.hidden = false;
-    const w = host.clientWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
-    tip.style.left = Math.max(0, Math.min(w - tw, x + 12)) + 'px';
-    tip.style.top = Math.max(0, y - th - 10) + 'px';
-  };
-  const hide = () => { tip.hidden = true; };
-  host.onclick = hide;
-  const bind = (sel, linesFn, posFn) => sel
-    .attr('tabindex', 0)
-    .attr('aria-label', (d) => linesFn(d).map((l) => l[1]).join('. '))
-    .on('pointerenter', (ev, d) => { if (ev.pointerType === 'mouse') show(linesFn(d), ...posFn(d)); })
-    .on('pointerleave', (ev) => { if (ev.pointerType === 'mouse') hide(); })
-    .on('click', (ev, d) => { ev.stopPropagation(); show(linesFn(d), ...posFn(d)); })
-    .on('focus', (ev, d) => show(linesFn(d), ...posFn(d)))
-    .on('blur', hide);
-  return { show, hide, bind };
-};
-window.hpUnitLines = (r) => {
-  const st = hpSit[r.situacao] || 'st-wait';
-  return [
-    ['hp-tip-val', r.nota ? hpNf1.format(Number(r.nota)) + '★ · ' + hpNf0.format(Number(r.avaliacoes)) + ' avaliações' : 'Sem ficha no Maps'],
-    ['hp-tip-head', r.unidade],
-    ['hp-tip-flag', r.alertas ? r.situacao + ': ' + r.alertas : r.situacao, st]
-  ];
-};
-window.hpConcLines = (r) => [
-  ['hp-tip-val', r.nota ? hpNf1.format(Number(r.nota)) + '★ · ' + hpNf0.format(Number(r.avaliacoes || 0)) + ' avaliações' : 'Sem avaliações'],
-  ['hp-tip-head', r.nome],
-  ['hp-tip-head', (r.categoria || r.tipo) + ' · ' + hpNf2.format(Number(r.distancia_km)) + ' km' + (['Meta', 'Google', 'Meta e Google'].includes(r.anuncia) ? ' · anuncia: ' + r.anuncia : '')]
-];
-
-/* Labels that avoid each other: tries right, left, above, below; skips when nothing fits. */
-window.hpLabel = (svg, items, w, h, cls) => {
-  const placed = items.map((p) => ({ x0: p.x - p.r, x1: p.x + p.r, y0: p.y - p.r, y1: p.y + p.r }));
-  const hit = (b) => placed.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0);
-  const g = svg.append('g').attr('aria-hidden', 'true');
-  for (const p of items.filter((q) => q.label)) {
-    const t = g.append('text').attr('class', p.cls || cls).text(p.label);
-    const tw = t.node().getComputedTextLength();
-    const o = p.r + 3;
-    const tries = [
-      { x: p.x + o, y: p.y + 4, a: 'start', b: { x0: p.x + o - 1, x1: p.x + o + tw + 1, y0: p.y - 8, y1: p.y + 7 } },
-      { x: p.x - o, y: p.y + 4, a: 'end', b: { x0: p.x - o - tw - 1, x1: p.x - o + 1, y0: p.y - 8, y1: p.y + 7 } },
-      { x: p.x, y: p.y - o - 4, a: 'middle', b: { x0: p.x - tw / 2 - 1, x1: p.x + tw / 2 + 1, y0: p.y - o - 16, y1: p.y - o - 1 } },
-      { x: p.x, y: p.y + o + 13, a: 'middle', b: { x0: p.x - tw / 2 - 1, x1: p.x + tw / 2 + 1, y0: p.y + o, y1: p.y + o + 15 } }
-    ];
-    const ok = tries.find((c) => c.b.x0 >= 0 && c.b.x1 <= w && c.b.y0 >= 0 && c.b.y1 <= h && !hit(c.b));
-    if (ok) { t.attr('x', ok.x).attr('y', ok.y).attr('text-anchor', ok.a); placed.push(ok.b); } else { t.remove(); }
-  }
-};
-
-window.hpAtivas = () => {
-  const d = dash.data('unidades');
-  return d.status === 'ok' ? d.data.filter((r) => r.status_rede === 'Ativa').sort((a, b) => a.unidade.localeCompare(b.unidade, 'pt-BR')) : [];
-};
-window.hpLojaAtual = () => {
-  const ativas = hpAtivas();
-  if (!ativas.some((r) => r.codigo === window.hpLoja)) window.hpLoja = ativas.length ? ativas[0].codigo : '';
-  return window.hpLoja;
-};
-
-/* Tabs */
-const hpOpenTab = (name) => {
-  document.querySelectorAll('.hp-tab-btn').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
-  document.querySelectorAll('.hp-panel').forEach((p) => { p.hidden = p.id !== name; });
-};
-document.querySelectorAll('.hp-tab-btn').forEach((b) => b.addEventListener('click', () => { hpOpenTab(b.dataset.tab); dash.setLink(b.dataset.tab); }));
-if (['conferencia', 'concorrencia'].includes(location.hash.slice(1))) hpOpenTab(location.hash.slice(1));
-
-/* Search boxes */
-document.querySelectorAll('.hp-search').forEach((inp) => {
-  inp.addEventListener('input', () => { window.hpQuery[inp.dataset.search] = inp.value.trim().toLowerCase(); dash.draw(inp.dataset.search); });
-});
-
-/* Legend swatch in the series color */
-document.querySelectorAll('.hp-sw-pastel').forEach((s) => { s.style.background = hpPastel(); });
-
-dash.calc('resumo', {
-  title: 'Resumo da conferência',
-  description: 'Unidades da planilha por situação no Google Maps, com a nota média e o total de avaliações das que têm ficha.',
-  inputs: ['unidades'],
-  fn: (unidades) => {
-    const planilha = unidades.filter((r) => r.status_rede !== 'Fora da planilha');
-    const noMaps = planilha.filter((r) => r.no_maps === 'sim');
-    const notas = noMaps.map((r) => Number(r.nota)).filter((n) => n > 0);
-    return [{
-      planilha: planilha.length,
-      confere: planilha.filter((r) => r.situacao === 'Confere').length,
-      divergencia: planilha.filter((r) => r.situacao === 'Divergência').length,
-      sem_ficha: planilha.filter((r) => r.no_maps !== 'sim' && r.status_rede === 'Ativa').length,
-      desativadas: planilha.filter((r) => r.status_rede === 'Inativa').length,
-      fora: unidades.filter((r) => r.situacao === 'Fora da planilha').length,
-      nota_media: Math.round(notas.reduce((a, b) => a + b, 0) / notas.length * 10) / 10,
-      avaliacoes: noMaps.reduce((a, r) => a + Number(r.avaliacoes || 0), 0)
-    }];
-  }
-});
-
-dash.calc('conc_resumo', {
-  title: 'Concorrência por loja',
-  description: 'Para cada loja ativa: pastelarias e estabelecimentos a até 1 e 3 km, nota, avaliações e avaliações negativas da loja contra os vizinhos, posição em avaliações e quantos vizinhos anunciam.',
-  inputs: ['unidades', 'concorrentes'],
-  fn: (unidades, concorrentes) => unidades.filter((u) => u.status_rede === 'Ativa').map((u) => {
-    const perto = concorrentes.filter((c) => c.codigo === u.codigo);
-    const km = (c) => Number(c.distancia_km);
-    const ate3 = perto.filter((c) => km(c) <= 3);
-    const notas = ate3.map((c) => Number(c.nota)).filter((n) => n > 0);
-    const negs = ate3.filter((c) => c.negativas_pct !== '').map((c) => Number(c.negativas_pct));
-    const lider = ate3.slice().sort((a, b) => Number(b.avaliacoes || 0) - Number(a.avaliacoes || 0))[0];
-    const loja = u.avaliacoes ? Number(u.avaliacoes) : null;
-    return {
-      codigo: u.codigo,
-      unidade: u.unidade,
-      ate_1km: perto.filter((c) => km(c) <= 1).length,
-      pastelarias_1km: perto.filter((c) => km(c) <= 1 && c.tipo === 'Pastelaria').length,
-      ate_3km: ate3.length,
-      pastelarias_3km: ate3.filter((c) => c.tipo === 'Pastelaria').length,
-      nota_loja: u.nota ? Number(u.nota) : null,
-      avaliacoes_loja: loja,
-      nota_media_3km: notas.length ? Math.round(notas.reduce((a, b) => a + b, 0) / notas.length * 10) / 10 : null,
-      neg_loja: u.negativas_pct ? Number(u.negativas_pct) : null,
-      neg_media_3km: negs.length ? Math.round(negs.reduce((a, b) => a + b, 0) / negs.length) : null,
-      posicao: loja == null ? null : ate3.filter((c) => Number(c.avaliacoes || 0) > loja).length + 1,
-      total_3km: ate3.length + 1,
-      lider_nome: lider ? lider.nome : null,
-      lider_avaliacoes: lider ? Number(lider.avaliacoes || 0) : null,
-      anunciam_3km: ate3.filter((c) => ['Meta', 'Google', 'Meta e Google'].includes(c.anuncia)).length,
-      com_site_3km: ate3.filter((c) => c.anuncia !== 'Sem site').length
-    };
-  })
-});
-
-dash.draw('kpi', (el) => {
-  const d = dash.data('resumo');
-  el.classList.remove('dash-skeleton');
-  if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
-  const f = el.dataset.field;
-  const v = d.data[0][f];
-  el.textContent = f === 'nota_media' ? hpNf1.format(v) : hpNf0.format(v);
-});
-
-dash.draw('lojas', (sel) => {
-  const ativas = hpAtivas();
-  sel.replaceChildren(...ativas.map((r) => new Option(r.unidade, r.codigo)));
-  sel.value = hpLojaAtual();
-  sel.onchange = () => { window.hpLoja = sel.value; ['cv', 'conc-map', 'conc-bars', 'conc-week', 'conc-rows'].forEach((n) => dash.draw(n)); };
-});
-
-dash.draw('cv', (el) => {
-  const d = dash.data('conc_resumo');
-  const cod = hpLojaAtual();
-  const skel = el.closest('.dash-skeleton') || (el.classList.contains('dash-skeleton') ? el : null);
-  if (skel) skel.classList.remove('dash-skeleton');
-  el.setAttribute('data-where', 'codigo=' + encodeURIComponent(cod));
-  if (d.status !== 'ok') { el.textContent = '—'; return; }
-  const row = d.data.find((r) => r.codigo === cod);
-  const f = el.dataset.field;
-  const v = row ? row[f] : null;
-  if (v == null) { el.textContent = '—'; return; }
-  if (typeof v !== 'number') { el.textContent = v; return; }
-  el.textContent = f.startsWith('nota') ? hpNf1.format(v) : hpNf0.format(v);
-});
-
-dash.draw('map', (el) => {
-  const d = dash.data('unidades');
-  if (d.status === 'error') { hpFail(el); return; }
-  if (d.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
-  el.replaceChildren();
-  const pts = d.data.filter((r) => r.lat && r.lon).map((r) => ({ r, lon: Number(r.lon), lat: Number(r.lat) }));
-  const w = el.clientWidth || 600;
-  const mp = { type: 'MultiPoint', coordinates: pts.map((p) => [p.lon, p.lat]) };
-  const fit = d3.geoMercator().fitWidth(Math.max(100, w - 72), mp);
-  const bb = d3.geoPath(fit).bounds(mp);
-  const h = Math.round(Math.max(220, Math.min(420, bb[1][1] - bb[0][1] + 56)));
-  const proj = d3.geoMercator().fitExtent([[36, 28], [w - 36, h - 28]], mp);
-  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'group').attr('aria-label', 'Mapa das unidades no Rio Grande do Sul');
-  svg.append('path').datum(d3.geoGraticule().step([0.5, 0.5])()).attr('class', 'hp-grat').attr('d', d3.geoPath(proj));
-  pts.forEach((p) => { [p.x, p.y] = proj([p.lon, p.lat]); });
-  const rank = (p) => (p.r.situacao === 'Confere' ? 1 : 0);
-  const items = pts.slice().sort((a, b) => rank(a) - rank(b) || Number(b.r.avaliacoes || 0) - Number(a.r.avaliacoes || 0))
-    .map((p) => ({ x: p.x, y: p.y, r: 6, label: hpShort(p.r.unidade) }));
-  hpLabel(svg, items, w, h, 'hp-lbl');
-  const tip = hpTip(el);
-  const g = svg.append('g');
-  g.selectAll('circle.hp-dot').data(pts).join('circle')
-    .attr('class', (p) => 'hp-dot ' + (hpSit[p.r.situacao] || 'st-wait'))
-    .attr('cx', (p) => p.x).attr('cy', (p) => p.y).attr('r', 6);
-  tip.bind(g.selectAll('circle.hp-hit').data(pts).join('circle')
-    .attr('class', 'hp-hit').attr('cx', (p) => p.x).attr('cy', (p) => p.y).attr('r', 13),
-  (p) => hpUnitLines(p.r), (p) => [p.x, p.y]);
-});
-
-dash.draw('bars', (el) => {
-  const d = dash.data('unidades');
-  if (d.status === 'error') { hpFail(el); return; }
-  if (d.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
-  el.replaceChildren();
-  const rows = d.data.filter((r) => r.avaliacoes).slice().sort((a, b) => Number(b.avaliacoes) - Number(a.avaliacoes));
-  const w = el.clientWidth || 600;
-  const band = 26;
-  const h = rows.length * band + 8;
-  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'group').attr('aria-label', 'Avaliações no Google por unidade');
-  const nm = (r) => hpClip(hpShort(r.unidade), hpNameMax(w));
-  const valText = (r) => hpNf0.format(Number(r.avaliacoes)) + ' · ' + hpNf1.format(Number(r.nota)) + '★';
-  const probe = svg.append('g');
-  const nameW = d3.max(rows, (r) => probe.append('text').attr('class', 'hp-lbl').text(nm(r)).node().getComputedTextLength()) || 0;
-  const valW = d3.max(rows, (r) => probe.append('text').attr('class', 'hp-lbl-muted').text(valText(r)).node().getComputedTextLength()) || 0;
-  probe.remove();
-  const ml = nameW + 10;
-  const x = d3.scaleLinear([0, d3.max(rows, (r) => Number(r.avaliacoes)) || 1], [ml, Math.max(ml + 20, w - valW - 8)]);
-  const y = d3.scaleBand(rows.map((r) => r.unidade), [4, h - 4]).padding(0.3);
-  const bh = Math.min(24, y.bandwidth());
-  const yo = (r) => y(r.unidade) + (y.bandwidth() - bh) / 2;
-  svg.append('line').attr('class', 'hp-axis').attr('x1', ml).attr('x2', ml).attr('y1', 0).attr('y2', h);
-  const tip = hpTip(el);
-  const row = svg.selectAll('g.row').data(rows).join('g').attr('class', 'row');
-  row.append('text').attr('class', 'hp-lbl').attr('x', ml - 8).attr('y', (r) => yo(r) + bh / 2 + 4).attr('text-anchor', 'end').text(nm);
-  row.append('path').attr('class', (r) => 'hp-bar ' + (hpSit[r.situacao] || 'st-wait'))
-    .attr('d', (r) => hpBarPath(ml + 1, yo(r), Math.max(ml + 2, x(Number(r.avaliacoes))), bh));
-  row.append('text').attr('class', 'hp-lbl-muted').attr('x', (r) => x(Number(r.avaliacoes)) + 6).attr('y', (r) => yo(r) + bh / 2 + 4).text(valText);
-  tip.bind(row.append('rect').attr('class', 'hp-hit').attr('x', 0).attr('width', w).attr('y', (r) => y(r.unidade) - 3).attr('height', y.bandwidth() + 6),
-    (r) => hpUnitLines(r), (r) => [Math.min(x(Number(r.avaliacoes)), w - 40), y(r.unidade)]);
-});
-
-dash.draw('rows', (tb) => {
-  const d = dash.data('unidades');
-  tb.replaceChildren();
-  if (d.status !== 'ok') return;
-  const cols = [...tb.closest('table').querySelectorAll('th[data-field]')].map((th) => th.dataset.field);
-  const labels = hpLabelRows(tb);
-  const q = window.hpQuery.rows || '';
-  const rows = d.data.slice()
-    .sort((a, b) => hpOrder.indexOf(a.situacao) - hpOrder.indexOf(b.situacao) || a.codigo.localeCompare(b.codigo))
-    .filter((r) => !q || Object.values(r).join(' ').toLowerCase().includes(q));
-  for (const r of rows) {
-    const tr = document.createElement('tr');
-    cols.forEach((c, i) => {
-      const td = document.createElement('td');
-      td.dataset.label = labels[i];
-      if (c === 'unidade') td.className = 'hp-lead';
-      if (c === 'situacao') {
-        const s = document.createElement('span');
-        s.className = 'hp-pill ' + (hpSit[r.situacao] || 'st-wait');
-        s.textContent = r.situacao;
-        td.append(s);
-      } else if (c === 'nota') {
-        td.className = 'num';
-        td.textContent = r.nota ? hpNf1.format(Number(r.nota)) : '';
-      } else if (c === 'avaliacoes') {
-        td.className = 'num';
-        td.textContent = r.avaliacoes ? hpNf0.format(Number(r.avaliacoes)) : '';
-      } else if (c === 'negativas_pct') {
-        td.className = 'num';
-        td.textContent = r.negativas_pct ? r.negativas_pct + '%' : '';
-      } else if (c === 'dias_abertos') {
-        td.className = 'num';
-        td.textContent = r.dias_abertos || '';
-      } else {
-        td.textContent = r[c] || '';
-      }
-      if ((c === 'endereco_maps' && r.endereco_confere === 'não') || (c === 'telefone_maps' && r.telefone_confere === 'não')) td.classList.add('hp-diff');
-      tr.append(td);
-    });
-    tb.append(tr);
-  }
-});
-
-dash.draw('conc-map', (el) => {
-  const u = dash.data('unidades');
-  const c = dash.data('concorrentes');
-  if (u.status === 'error' || c.status === 'error') { hpFail(el); return; }
-  if (u.status !== 'ok' || c.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
-  el.replaceChildren();
-  const cod = hpLojaAtual();
-  const loja = u.data.find((r) => r.codigo === cod);
-  if (!loja) return;
-  const center = [Number(loja.lon), Number(loja.lat)];
-  const deg = (km) => km / 111.195;
-  const ring = (km) => d3.geoCircle().center(center).radius(deg(km))();
-  const w = el.clientWidth || 600;
-  const h = Math.round(Math.max(300, Math.min(480, w * 0.85)));
-  const proj = d3.geoMercator().fitExtent([[8, 8], [w - 8, h - 8]], ring(5.1));
-  const path = d3.geoPath(proj);
-  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'group').attr('aria-label', 'Concorrentes ao redor da loja');
-  for (const k of [5, 3, 1]) {
-    svg.append('path').datum(ring(k)).attr('class', 'hp-ring').attr('d', path);
-    const [rx, ry] = proj([center[0], center[1] + deg(k)]);
-    svg.append('text').attr('class', 'hp-lbl-muted').attr('x', rx).attr('y', ry + 13).attr('text-anchor', 'middle').text(k + ' km');
-  }
-  const pts = c.data.filter((r) => r.codigo === cod).map((r) => {
-    const [x, y] = proj([Number(r.lon), Number(r.lat)]);
-    return { r, x, y };
-  });
-  const size = d3.scaleSqrt([0, d3.max(pts, (p) => Number(p.r.avaliacoes || 0)) || 1], [4, 12]);
-  pts.forEach((p) => { p.rad = size(Number(p.r.avaliacoes || 0)); });
-  const [lx, ly] = proj(center);
-  const top = pts.slice().sort((a, b) => Number(b.r.avaliacoes || 0) - Number(a.r.avaliacoes || 0)).slice(0, w < 420 ? 4 : 6);
-  const items = [{ x: lx, y: ly, r: 9, label: 'Hora do Pastel', cls: 'hp-lbl-strong' }]
-    .concat(top.map((p) => ({ x: p.x, y: p.y, r: p.rad, label: hpClip(p.r.nome, hpNameMax(w)) })))
-    .concat(pts.filter((p) => !top.includes(p)).map((p) => ({ x: p.x, y: p.y, r: p.rad })));
-  const g = svg.append('g');
-  g.selectAll('circle.hp-dot').data(pts.slice().sort((a, b) => b.rad - a.rad)).join('circle')
-    .attr('class', (p) => 'hp-dot' + (p.r.tipo === 'Pastelaria' ? '' : ' st-outro'))
-    .style('fill', (p) => (p.r.tipo === 'Pastelaria' ? hpPastel() : null))
-    .attr('cx', (p) => p.x).attr('cy', (p) => p.y).attr('r', (p) => p.rad);
-  g.append('circle').attr('class', 'hp-loja').attr('cx', lx).attr('cy', ly).attr('r', 8);
-  hpLabel(svg, items, w, h, 'hp-lbl');
-  const tip = hpTip(el);
-  tip.bind(g.selectAll('circle.hp-hit').data(pts).join('circle')
-    .attr('class', 'hp-hit').attr('cx', (p) => p.x).attr('cy', (p) => p.y).attr('r', (p) => Math.max(12, p.rad + 3)),
-  (p) => hpConcLines(p.r), (p) => [p.x, p.y]);
-  tip.bind(g.append('circle').datum(loja).attr('class', 'hp-hit').attr('cx', lx).attr('cy', ly).attr('r', 14),
-    (r) => hpUnitLines(r), () => [lx, ly]);
-});
-
-dash.draw('conc-bars', (el) => {
-  const u = dash.data('unidades');
-  const c = dash.data('concorrentes');
-  if (u.status === 'error' || c.status === 'error') { hpFail(el); return; }
-  if (u.status !== 'ok' || c.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
-  el.replaceChildren();
-  const cod = hpLojaAtual();
-  const loja = u.data.find((r) => r.codigo === cod);
-  if (!loja) return;
-  const vizinhos = c.data.filter((r) => r.codigo === cod && Number(r.distancia_km) <= 3 && r.avaliacoes)
-    .map((r) => ({ nome: r.nome, tipo: r.tipo, nota: r.nota, avaliacoes: Number(r.avaliacoes), src: r, loja: false }));
-  const rows = vizinhos.sort((a, b) => b.avaliacoes - a.avaliacoes).slice(0, 10);
-  if (loja.avaliacoes) rows.push({ nome: 'Hora do Pastel', tipo: 'Loja', nota: loja.nota, avaliacoes: Number(loja.avaliacoes), loja: true });
-  rows.sort((a, b) => b.avaliacoes - a.avaliacoes);
-  const w = el.clientWidth || 600;
-  const band = 26;
-  const h = Math.max(rows.length, 1) * band + 8;
-  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'group').attr('aria-label', 'Mais avaliados a até 3 km');
-  const name = (r) => hpClip(r.nome, hpNameMax(w));
-  const valText = (r) => hpNf0.format(r.avaliacoes) + (r.nota ? ' · ' + hpNf1.format(Number(r.nota)) + '★' : '');
-  const probe = svg.append('g');
-  const nameW = d3.max(rows, (r) => probe.append('text').attr('class', 'hp-lbl-strong').text(name(r)).node().getComputedTextLength()) || 0;
-  const valW = d3.max(rows, (r) => probe.append('text').attr('class', 'hp-lbl-muted').text(valText(r)).node().getComputedTextLength()) || 0;
-  probe.remove();
-  const ml = nameW + 10;
-  const x = d3.scaleLinear([0, d3.max(rows, (r) => r.avaliacoes) || 1], [ml, Math.max(ml + 20, w - valW - 8)]);
-  const y = d3.scaleBand(rows.map((r, i) => i), [4, h - 4]).padding(0.3);
-  const bh = Math.min(24, y.bandwidth());
-  const yo = (i) => y(i) + (y.bandwidth() - bh) / 2;
-  svg.append('line').attr('class', 'hp-axis').attr('x1', ml).attr('x2', ml).attr('y1', 0).attr('y2', h);
-  const tip = hpTip(el);
-  const row = svg.selectAll('g.row').data(rows).join('g').attr('class', 'row');
-  row.append('text').attr('class', (r) => (r.loja ? 'hp-lbl-strong' : 'hp-lbl')).attr('x', ml - 8).attr('y', (r, i) => yo(i) + bh / 2 + 4).attr('text-anchor', 'end').text(name);
-  row.append('path').attr('class', (r) => (r.loja ? 'hp-bar st-loja' : r.tipo === 'Pastelaria' ? 'hp-bar' : 'hp-bar st-outro'))
-    .style('fill', (r) => (!r.loja && r.tipo === 'Pastelaria' ? hpPastel() : null))
-    .attr('d', (r, i) => hpBarPath(ml + 1, yo(i), Math.max(ml + 2, x(r.avaliacoes)), bh));
-  row.append('text').attr('class', 'hp-lbl-muted').attr('x', (r) => x(r.avaliacoes) + 6).attr('y', (r, i) => yo(i) + bh / 2 + 4).text(valText);
-  tip.bind(row.append('rect').attr('class', 'hp-hit').attr('x', 0).attr('width', w).attr('y', (r, i) => y(i) - 3).attr('height', y.bandwidth() + 6),
-    (r) => (r.loja ? hpUnitLines(loja) : hpConcLines(r.src)), (r) => [Math.min(x(r.avaliacoes), w - 40), y(rows.indexOf(r))]);
-});
-
-dash.draw('conc-week', (el) => {
-  const u = dash.data('unidades');
-  const c = dash.data('concorrentes');
-  if (u.status === 'error' || c.status === 'error') { hpFail(el); return; }
-  if (u.status !== 'ok' || c.status !== 'ok') { el.replaceChildren(); el.textContent = '—'; return; }
-  el.replaceChildren();
-  const cod = hpLojaAtual();
-  const loja = u.data.find((r) => r.codigo === cod);
-  if (!loja) return;
-  const viz = c.data.filter((r) => r.codigo === cod && Number(r.distancia_km) <= 3 && r.dias_abertos);
-  const days = hpDias.map(([k, label]) => ({ k, label, n: viz.filter((r) => r[k] === '1').length, loja: loja[k] || '' }));
-  const w = el.clientWidth || 600;
-  const h = 200;
-  const mt = 20, mb = 50, mr = 8;
-  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'group').attr('aria-label', 'Estabelecimentos abertos por dia da semana');
-  const y = d3.scaleLinear([0, Math.max(1, viz.length)], [h - mb, mt]).nice();
-  const ticks = y.ticks(4).filter((t) => Number.isInteger(t));
-  const probe = svg.append('text').attr('class', 'hp-lbl-muted').text(hpNf0.format(d3.max(ticks) || 0));
-  const ml = probe.node().getComputedTextLength() + 12;
-  probe.remove();
-  const x = d3.scaleBand(days.map((d) => d.k), [ml, w - mr]).padding(0.35);
-  const cw = Math.min(24, x.bandwidth());
-  const cx = (d) => x(d.k) + x.bandwidth() / 2;
-  svg.selectAll('line.hp-grid-line').data(ticks).join('line').attr('class', 'hp-grid-line').attr('x1', ml).attr('x2', w - mr).attr('y1', (t) => y(t)).attr('y2', (t) => y(t));
-  svg.selectAll('text.tick').data(ticks).join('text').attr('class', 'hp-lbl-muted tick').attr('x', ml - 6).attr('y', (t) => y(t) + 4).attr('text-anchor', 'end').text((t) => hpNf0.format(t));
-  svg.append('line').attr('class', 'hp-axis').attr('x1', ml).attr('x2', w - mr).attr('y1', y(0)).attr('y2', y(0));
-  svg.selectAll('path.col').data(days).join('path').attr('class', 'col')
-    .style('fill', hpPastel())
-    .attr('d', (d) => hpColPath(cx(d) - cw / 2, y(0), y(d.n), cw));
-  svg.selectAll('text.cap').data(days).join('text').attr('class', 'hp-lbl-muted cap')
-    .attr('x', cx).attr('y', (d) => y(d.n) - 6).attr('text-anchor', 'middle').text((d) => hpNf0.format(d.n));
-  svg.selectAll('text.day').data(days).join('text').attr('class', 'hp-lbl day')
-    .attr('x', cx).attr('y', h - mb + 16).attr('text-anchor', 'middle').text((d) => d.label);
-  svg.selectAll('circle.mark').data(days.filter((d) => d.loja !== '')).join('circle')
-    .attr('class', (d) => 'mark ' + (d.loja === '1' ? 'hp-open' : 'hp-closed'))
-    .attr('cx', cx).attr('cy', h - mb + 32).attr('r', 5);
-  const tip = hpTip(el);
-  const lojaTxt = (d) => (d.loja === '1' ? 'a loja abre' : d.loja === '0' ? 'a loja fecha' : 'horário da loja não informado');
-  tip.bind(svg.selectAll('rect.hit').data(days).join('rect').attr('class', 'hp-hit hit')
-    .attr('x', (d) => x(d.k)).attr('width', x.bandwidth()).attr('y', mt).attr('height', h - mt),
-  (d) => [['hp-tip-val', hpNf0.format(d.n) + ' de ' + hpNf0.format(viz.length) + ' abertos'], ['hp-tip-head', d.label + ': ' + lojaTxt(d)]],
-  (d) => [x(d.k), y(d.n)]);
-});
-
-dash.draw('conc-rows', (tb) => {
-  const d = dash.data('concorrentes');
-  tb.replaceChildren();
-  if (d.status !== 'ok') return;
-  const cod = hpLojaAtual();
-  const cols = [...tb.closest('table').querySelectorAll('th[data-field]')].map((th) => th.dataset.field);
-  const labels = hpLabelRows(tb);
-  const q = window.hpQuery['conc-rows'] || '';
-  const rows = d.data.filter((r) => r.codigo === cod)
-    .sort((a, b) => Number(a.distancia_km) - Number(b.distancia_km))
-    .filter((r) => !q || [r.nome, r.categoria, r.endereco, r.tipo, r.anuncia, r.redes].join(' ').toLowerCase().includes(q));
-  for (const r of rows) {
-    const tr = document.createElement('tr');
-    tr.dataset.key = encodeURIComponent(r.codigo) + ',' + encodeURIComponent(r.place_id);
-    cols.forEach((c, i) => {
-      const td = document.createElement('td');
-      td.dataset.label = labels[i];
-      if (c === 'nome') td.className = 'hp-lead';
-      if (c === 'tipo') {
-        const s = document.createElement('span');
-        s.className = 'hp-pill' + (r.tipo === 'Pastelaria' ? '' : ' st-outro');
-        if (r.tipo === 'Pastelaria') s.style.setProperty('--st', hpPastel());
-        s.textContent = r.tipo;
-        td.append(s);
-      } else if (c === 'distancia_km') {
-        td.className = 'num';
-        td.textContent = hpNf2.format(Number(r.distancia_km));
-      } else if (c === 'nota') {
-        td.className = 'num';
-        td.textContent = r.nota ? hpNf1.format(Number(r.nota)) : '';
-      } else if (c === 'avaliacoes') {
-        td.className = 'num';
-        td.textContent = r.avaliacoes ? hpNf0.format(Number(r.avaliacoes)) : '';
-      } else if (c === 'negativas_pct') {
-        td.className = 'num';
-        td.textContent = r.negativas_pct ? r.negativas_pct + '%' : '';
-      } else if (c === 'dias_abertos') {
-        td.className = 'num';
-        td.textContent = r.dias_abertos || '';
-      } else {
-        td.textContent = r[c] || '';
-      }
-      tr.append(td);
-    });
-    tb.append(tr);
-  }
-});
-</script>
+  <div id="hp-live" class="sr-only" aria-live="polite"></div>
 </div>
 </body>
 </html>
