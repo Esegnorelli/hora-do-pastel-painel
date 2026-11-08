@@ -240,9 +240,13 @@ th[aria-sort="descending"] .hp-sort::after { content: "↓" / ""; color: var(--i
 .hp-acoes ul { margin: 0; padding-left: 1.1rem; font-size: var(--fs-caption); line-height: 1.5; }
 .hp-acoes ul li + li { margin-top: .2rem; }
 .hp-acoes-vazio { color: var(--ink-2); font-size: var(--fs-caption); }
-/* Altura aproximada da lista com os dados de hoje (9 pendências), reservada enquanto carrega: evita empurrar o mapa. */
-.hp-acoes:empty { min-height: 21rem; }
-@media (max-width: 40rem) { .hp-acoes:empty { min-height: 61rem; } }
+.hp-evidencia { margin: var(--gap-xs) 0 0; font-size: var(--fs-caption); color: var(--ink-2); line-height: 1.5; }
+.hp-evidencia > summary { cursor: pointer; color: var(--ink); font-weight: 600; min-height: 24px; }
+.hp-evidencia > p { margin: var(--gap-xs) 0 0; }
+.hp-evidencia-tag { font-weight: 400; color: var(--ink-2); }
+/* Altura aproximada da lista com os dados de hoje (9 pendências verificadas), reservada enquanto carrega: evita empurrar o mapa. */
+.hp-acoes:empty { min-height: 27rem; }
+@media (max-width: 40rem) { .hp-acoes:empty { min-height: 88rem; } }
 
 /* === Visão da rede === */
 .ch-vis-ranking { --h: 27rem; }

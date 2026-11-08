@@ -2,7 +2,7 @@
 
 import { fill, mount, dataTable, altTable, statusPill, statusIcon, stateMsg, announce, h, isNarrow, ORDEM_SITUACAO, sitOf } from '../ui.js';
 import { num, nf0, fmtNota, fmtInt, fmtPct, shortName, clip, nameMax, plural } from '../format.js';
-import { acoesDaUnidade, PRECISA_ACAO } from '../acoes.js';
+import { acoesDaUnidade, verificacao, PRECISA_ACAO } from '../acoes.js';
 import { unidadesMap } from '../charts/unidades-map.js';
 import { hbars } from '../charts/bars.js';
 
@@ -74,8 +74,20 @@ function drawActions(rows) {
   }
   list.replaceChildren(...pend.map(({ u, acoes }) => h('li', null,
     h('p', { class: 'hp-acoes-head' }, statusIcon(u.situacao), h('strong', { text: u.unidade }), h('span', { class: 'hp-note', text: u.situacao + (u.codigo !== '—' ? ' · ' + u.codigo : '') })),
-    h('ul', null, acoes.map((a) => h('li', { text: a })))
+    h('ul', null, acoes.map((a) => h('li', { text: a }))),
+    evidencia(u)
   )));
+}
+
+// O que a pesquisa na internet mostrou: data e confiança à vista; resumo e fontes (só nomes dos sites, sem links)
+// num <details>, para a lista continuar curta.
+function evidencia(u) {
+  const v = verificacao(u);
+  if (!v) return null;
+  return h('details', { class: 'hp-evidencia' },
+    h('summary', { text: `Verificado na internet em ${v.data} · confiança ${v.confianca}` }),
+    h('p', { text: v.resumo }),
+    v.fontes.length ? h('p', { class: 'hp-evidencia-fontes', text: 'Fontes: ' + v.fontes.join('; ') + '.' }) : null);
 }
 
 function drawMap(todas, rows) {
@@ -128,6 +140,7 @@ function tableColumns() {
     { key: 'situacao', label: 'Situação', text: (r) => statusPill(r.situacao), sort: (r) => ORDEM_SITUACAO.indexOf(r.situacao) },
     { key: 'status_rede', label: 'Na rede' },
     { key: 'alertas', label: 'O que olhar' },
+    { key: 'verificacao_resumo', label: 'Na internet', text: (r) => (r.verificacao_resumo ? `${r.verificacao_resumo} (confiança ${r.verificacao_confianca})` : '') },
     { key: 'endereco_planilha', label: 'Endereço na planilha' },
     { key: 'endereco_maps', label: 'Endereço no Maps', cls: diff('endereco_confere') },
     { key: 'telefone_planilha', label: 'Telefone na planilha' },

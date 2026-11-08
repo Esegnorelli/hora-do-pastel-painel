@@ -1,4 +1,5 @@
-// Texto curto de ação para cada pendência da conferência. Usa só campos do CSV; não inventa dados.
+// Texto curto de ação para cada pendência da conferência. Quando a pendência foi checada na internet
+// (colunas verificacao_* do CSV), a ação verificada vem primeiro; senão, a ação sai só dos campos do CSV.
 
 import { num, nf0 } from './format.js';
 
@@ -13,7 +14,29 @@ const avisoSem9 = (tels) => (tels.some(celularSem9)
   ? ' Confirme o número antes: na planilha ele está sem o 9 inicial de celular.'
   : '');
 
+// Pesquisa na internet sobre a unidade (ou null se não houve).
+export function verificacao(u) {
+  if (!u.verificacao_acao) return null;
+  const [a, m, d] = (u.verificado_em || '').split('-');
+  return {
+    resumo: u.verificacao_resumo,
+    acao: u.verificacao_acao,
+    confianca: u.verificacao_confianca,
+    status: u.verificacao_status,
+    fontes: [...new Set((u.verificacao_fontes || '').split(';').map((s) => s.trim()).filter(Boolean))],
+    data: d ? `${d}/${m}/${a}` : ''
+  };
+}
+
 export function acoesDaUnidade(u) {
+  const v = verificacao(u);
+  if (!v) return acoesPelaConferencia(u);
+  const out = [v.acao];
+  if (tem(u, 'Poucas avaliações') && !/avalia/i.test(v.acao)) out.push(...acoesPelaConferencia(u).filter((a) => a.startsWith('Peça avaliações')));
+  return out;
+}
+
+function acoesPelaConferencia(u) {
   const out = [];
   if (u.situacao === 'Não encontrada') {
     const tel = telefonesPlanilha(u)[0];

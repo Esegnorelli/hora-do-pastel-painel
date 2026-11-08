@@ -4,7 +4,7 @@ import { h, fill, mount, dataTable, altTable, statusIcon, isNarrow } from '../ui
 import { num, nf0, nf1, nf2, fmtNota, fmtInt, fmtPct, shortName, clip, nameMax, plural, DIAS } from '../format.js';
 import { ativas, resumoLoja, media, mediana, vals } from '../data.js';
 import { hashFor } from '../tabs.js';
-import { acoesDaUnidade, PRECISA_ACAO } from '../acoes.js';
+import { acoesDaUnidade, verificacao, PRECISA_ACAO } from '../acoes.js';
 import { ranking } from '../charts/ranking.js';
 import { dispersao } from '../charts/dispersao.js';
 
@@ -168,10 +168,12 @@ function grupo(id, titulo, itens, vazio) {
 function desenharLista({ fichas, negativas, fechados, ir }) {
   grupo('vis-fichas', 'Fichas a corrigir', fichas.map((u) => {
     const acoes = acoesDaUnidade(u);
+    const v = verificacao(u);
     return [
       h('span', { class: 'hp-pill' }, statusIcon(u.situacao), u.situacao),
       ' — ', link({ tab: 'conferencia' }, shortName(u.unidade), ir), ': ',
       acoes[0] || 'confira a ficha na conferência.',
+      v ? h('span', { class: 'hp-evidencia-tag', text: ` Verificado na internet em ${v.data}, confiança ${v.confianca}.` }) : '',
       acoes.length > 1 ? ` (+${acoes.length - 1} na conferência)` : ''
     ];
   }), 'Nenhuma ficha a corrigir.');
