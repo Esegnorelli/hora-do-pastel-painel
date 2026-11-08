@@ -3,7 +3,7 @@
 
 import { announce } from './ui.js';
 
-export const TABS = ['conferencia', 'concorrencia'];
+export const TABS = ['visao', 'conferencia', 'concorrencia'];
 
 export function parseHash(hash) {
   const id = decodeURIComponent(String(hash || '').replace(/^#/, ''));

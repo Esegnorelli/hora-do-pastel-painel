@@ -148,6 +148,8 @@ export function placeLabels(svg, items, w, hgt, cls) {
 // columns: [{ key, label, num?, lead?, sort?(r) → valor, text?(r) → string|Node, cls?(r) → classe extra }]
 // Ordenável quando `sortable`; no celular a tabela vira cartões e a ordenação passa para um <select>.
 // `pageSize` mostra as primeiras linhas e um botão "Mostrar mais" (evita páginas enormes no celular).
+export const isNarrow = () => matchMedia('(max-width: 40rem)').matches;
+
 export function dataTable(table, { columns, rows = [], sort = null, sortable = false, empty = 'Nada para mostrar.', onSort = null, pageSize = 0 }) {
   const state = { rows, sort, shown: pageSize || Infinity };
   const thead = h('thead');
@@ -189,7 +191,7 @@ export function dataTable(table, { columns, rows = [], sort = null, sortable = f
       mobileSel = h('select', { class: 'hp-select' });
       wrap.before(h('label', { class: 'hp-sort-mobile' }, h('span', { class: 'hp-ctrl-label', text: 'Ordenar por' }), mobileSel));
     }
-    mobileSel.replaceChildren(...columns.flatMap((c) => [
+    mobileSel.replaceChildren(...(sort ? [] : [new Option('Ordem padrão', '')]), ...columns.flatMap((c) => [
       new Option(c.label + (c.num ? ' (maior primeiro)' : ' (A–Z)'), c.key + ':' + (c.num ? 'desc' : 'asc')),
       new Option(c.label + (c.num ? ' (menor primeiro)' : ' (Z–A)'), c.key + ':' + (c.num ? 'asc' : 'desc'))
     ]));

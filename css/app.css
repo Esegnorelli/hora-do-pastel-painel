@@ -61,6 +61,7 @@ body { margin: 0; background: var(--page); color: var(--ink); font-family: var(-
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hp-print-title { display: none; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 
 .hp { max-width: 82rem; margin-inline: auto; padding: 2rem var(--gutter-r) 3rem var(--gutter);
@@ -222,10 +223,121 @@ th[aria-sort="descending"] .hp-sort::after { content: "↓" / ""; color: var(--i
   .hp-table.is-wide, .hp-table.is-mid { min-width: 0; }
   .hp-table.is-cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .hp-table.is-cards, .hp-table.is-cards tbody, .hp-table.is-cards tr, .hp-table.is-cards td { display: block; width: 100%; }
-  .hp-table.is-cards tr { border: 1px solid var(--grid); border-radius: var(--radius); padding: .55rem .9rem; margin-bottom: var(--gap-sm); }
+  .hp-table.is-cards tr { display: flex; flex-direction: column; border: 1px solid var(--grid); border-radius: var(--radius); padding: .55rem .9rem; margin-bottom: var(--gap-sm); }
   .hp-table.is-cards td { border: 0; padding: .15rem 0; display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: var(--gap-sm); overflow-wrap: anywhere; text-align: left; }
   .hp-table.is-cards td::before { content: attr(data-label); color: var(--ink-2); }
   .hp-table.is-cards td:empty { display: none; }
-  .hp-table.is-cards td.is-lead { display: block; font-weight: 600; font-size: var(--fs-body); padding-bottom: var(--gap-xs); }
+  .hp-table.is-cards td.is-lead { order: -1; display: block; font-weight: 600; font-size: var(--fs-body); padding-bottom: var(--gap-xs); }
   .hp-table.is-cards td.is-lead::before { content: none; }
 }
+
+/* === Conferência === */
+.hp-acoes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: var(--gap-sm) var(--gap-lg); }
+.hp-acoes > li { border-top: 1px solid var(--grid); padding-top: var(--gap-sm); min-width: 0; }
+.hp-acoes-head { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem .5rem; margin: 0 0 var(--gap-xs); }
+.hp-acoes ul { margin: 0; padding-left: 1.1rem; font-size: var(--fs-caption); line-height: 1.5; }
+.hp-acoes ul li + li { margin-top: .2rem; }
+.hp-acoes-vazio { color: var(--ink-2); font-size: var(--fs-caption); }
+
+/* === Visão da rede === */
+.ch-vis-ranking { --h: 27rem; }
+.ch-vis-dispersao { --h: 27.5rem; }
+/* Trecho de 1 a 3 km: tom claro da cor das pastelarias; o contorno na cor cheia garante contraste com o fundo. */
+.hp-bar.is-tint { fill: color-mix(in srgb, var(--c-pastel) 40%, var(--surface)); stroke: var(--c-pastel); stroke-width: 1; }
+.sw-pastel-tint { --sw: color-mix(in srgb, var(--c-pastel) 40%, var(--surface)); box-shadow: inset 0 0 0 1px var(--c-pastel); }
+/* Linha loja → mediana: cinza derivado de --ink-2 com contraste ≥ 3:1 contra o fundo nos dois temas. */
+.vis-link { stroke: color-mix(in srgb, var(--ink-2) 65%, var(--surface)); stroke-width: 2; }
+/* Rótulos por cima das linhas: contorno na cor do fundo mantém o texto legível. */
+#vis-dispersao .hp-lbl { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+#vis-tabela th { white-space: normal; vertical-align: bottom; }
+#vis-tabela td.is-lead { white-space: nowrap; }
+#visao a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+#visao a:hover { text-decoration-thickness: 2px; }
+.vis-sub, .vis-todo h3 { font-size: var(--fs-body); font-weight: 600; margin: var(--gap-sm) 0 0; }
+.vis-todo { display: flex; flex-direction: column; gap: var(--gap-xs); }
+.vis-todo + .vis-todo { border-top: 1px solid var(--grid); padding-top: var(--gap-sm); }
+.vis-list { margin: 0; padding-left: 1.1rem; font-size: var(--fs-caption); line-height: 1.5; max-width: 90ch; }
+.vis-list li + li { margin-top: .3rem; }
+.vis-list .hp-pill { vertical-align: top; }
+@media (max-width: 40rem) {
+  .hp-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ch-vis-dispersao { --h: 19rem; }
+}
+
+/* === Concorrência === */
+/* Barra de loja e filtros: uma linha no computador; no celular cada controle ocupa a largura toda. */
+.cf-bar { align-items: flex-end; gap: var(--gap-sm) var(--gap-md); }
+.cf-field { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.hp-select.cf-select { min-width: 0; }
+.cf-check { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.5rem; padding: 0 .65rem; border: 1px solid var(--grid); border-radius: var(--radius); background: var(--surface); cursor: pointer; white-space: nowrap; }
+.cf-check input { width: 1.125rem; height: 1.125rem; margin: 0; accent-color: var(--ink); }
+.cf-check:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.cf-check input:focus-visible { outline: none; }
+.cf-limpar { min-height: 2.5rem; }
+.hp-btn:disabled { color: var(--ink-2); cursor: not-allowed; border-color: var(--grid); }
+
+/* Mapa com ruas (Leaflet). O CSS do Leaflet entra antes deste arquivo; aqui só tokens. */
+.ch-conc-map { --h: 26rem; }
+.hp-leaflet { height: 26rem; border-radius: var(--radius); overflow: hidden; isolation: isolate; }
+.hp-leaflet.leaflet-container { font: inherit; background: var(--page); }
+.hp-leaflet .leaflet-bar { border-color: var(--grid); }
+.hp-leaflet .leaflet-bar a { background: var(--surface); color: var(--ink); border-bottom-color: var(--grid); }
+.hp-leaflet .leaflet-bar a:hover { background: var(--page); }
+.hp-leaflet .leaflet-bar a.leaflet-disabled { background: var(--page); color: var(--ink-2); }
+.hp-leaflet .leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 88%, transparent); color: var(--ink-2); font-size: 11px; }
+.hp-leaflet .leaflet-control-attribution a { color: var(--ink); }
+.hp-leaflet path.hp-lring { fill: none; stroke: var(--ink-2); stroke-width: 1; stroke-opacity: .75; }
+.hp-leaflet path.hp-lring.is-on { stroke: var(--ink); stroke-width: 1.5; stroke-opacity: 1; }
+.hp-lring-wrap { width: 0; height: 0; }
+.hp-lring-lbl { position: absolute; transform: translate(-50%, 3px); padding: 0 .25rem; border-radius: 3px; background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--ink-2); font-size: 11px; white-space: nowrap; }
+.hp-mk { display: grid; place-items: center; border-radius: 50%; }
+.hp-mk:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.hp-mk-dot { display: block; border-radius: 50%; background: var(--st); box-shadow: 0 0 0 2px var(--surface); }
+.hp-cluster { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink-2); font-size: 12px; font-weight: 600; }
+.leaflet-tooltip.hp-ltip { background: var(--popover); border: 1px solid var(--popover-border); border-radius: var(--radius); box-shadow: var(--shadow); color: var(--ink);
+  font: inherit; font-size: var(--fs-caption); padding: .3rem .55rem; white-space: normal; width: max-content; max-width: 17rem; }
+.leaflet-tooltip-top.hp-ltip::before { border-top-color: var(--popover-border); }
+/* Tema escuro: só os ladrilhos do mapa são invertidos e escurecidos; marcadores e anéis seguem os tokens. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hp-leaflet .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.85) saturate(.5); }
+}
+:root[data-theme="dark"] .hp-leaflet .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.85) saturate(.5); }
+
+/* Mapa de calor: 5 degraus de um só tom, de --surface até --c-vizinhos (contraste do texto conferido nos dois temas). */
+.ch-conc-heat { --h: 16rem; }
+.hm-0 { --hm: var(--surface); }
+.hm-1 { --hm: color-mix(in srgb, var(--c-vizinhos) 15%, var(--surface)); }
+.hm-2 { --hm: color-mix(in srgb, var(--c-vizinhos) 35%, var(--surface)); }
+.hm-3 { --hm: color-mix(in srgb, var(--c-vizinhos) 55%, var(--surface)); }
+.hm-4 { --hm: color-mix(in srgb, var(--c-vizinhos) 75%, var(--surface)); }
+.hm-5 { --hm: var(--c-vizinhos); }
+.hm-cell { fill: var(--hm); }
+.hm-cell.hm-0 { stroke: var(--grid); stroke-width: 1; }
+.hm-txt { fill: var(--ink); font-size: 11px; font-variant-numeric: tabular-nums; pointer-events: none; }
+.hm-txt.hm-0 { fill: var(--ink-2); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hm-txt.hm-5 { fill: var(--page); }
+}
+:root[data-theme="dark"] .hm-txt.hm-5 { fill: var(--page); }
+.hm-loja { fill: none; stroke: var(--c-loja); stroke-width: 2; pointer-events: none; }
+.hm-legend { margin-bottom: var(--gap-sm); }
+.hm-key { display: inline-flex; gap: 2px; }
+.hm-sw { width: .875rem; height: .875rem; border-radius: 2px; background: var(--hm); flex: none; }
+.hm-sw.hm-0 { box-shadow: inset 0 0 0 1px var(--grid); }
+.hm-sw.is-loja { background: transparent; box-shadow: inset 0 0 0 2px var(--c-loja); }
+
+.ch-conc-comp { --h: 7.5rem; }
+
+@media (max-width: 40rem) {
+  .cf-check { justify-content: flex-start; }
+  .hp-leaflet { height: 22rem; }
+  .ch-conc-map { --h: 22rem; }
+  .ch-conc-heat { --h: 26rem; }
+  .ch-conc-comp { --h: 30.5rem; }
+}
+@media (min-width: 40.01rem) {
+  #conc-tabela th { white-space: normal; vertical-align: bottom; }
+  #conc-tabela td.is-lead { min-width: 10rem; }
+  #conc-tabela td[data-label="Endereço"] { min-width: 18rem; }
+}
+#conc-calor .hp-hit:focus-visible { stroke-width: 3; }

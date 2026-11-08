@@ -5,12 +5,13 @@ import { num, shortName } from '../format.js';
 
 const d3 = window.d3;
 
-export function unidadesMap(el, w, { rows, tipLines }) {
+export function unidadesMap(el, w, { rows, fitRows = rows, tipLines }) {
   el.replaceChildren();
-  const pts = rows.filter((r) => num(r.lat) != null && num(r.lon) != null)
+  const pos = (list) => list.filter((r) => num(r.lat) != null && num(r.lon) != null)
     .map((r) => ({ r, lon: num(r.lon), lat: num(r.lat) }));
+  const pts = pos(rows);
   if (!pts.length) return;
-  const mp = { type: 'MultiPoint', coordinates: pts.map((p) => [p.lon, p.lat]) };
+  const mp = { type: 'MultiPoint', coordinates: pos(fitRows).map((p) => [p.lon, p.lat]) };
   const fit = d3.geoMercator().fitWidth(Math.max(100, w - 72), mp);
   const bb = d3.geoPath(fit).bounds(mp);
   const hgt = Math.round(Math.max(220, Math.min(420, bb[1][1] - bb[0][1] + 56)));

@@ -11,6 +11,7 @@
 <link rel="preload" href="data/unidades-maps.csv" as="fetch" crossorigin>
 <link rel="preload" href="data/concorrentes.csv" as="fetch" crossorigin>
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/print.css" media="print">
 <script src="js/tema-inicial.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
 <script type="module" src="js/main.js"></script>
@@ -21,6 +22,7 @@
     <div>
       <h1>Unidades no Google Maps</h1>
       <p class="hp-sub">Rede Hora do Pastel: fichas no Google Maps e pastelarias ao redor de cada loja. Buscas feitas em 8 de novembro de 2026.</p>
+      <p class="hp-print-title" id="hp-print-titulo"></p>
     </div>
     <div class="hp-actions">
       <button class="hp-btn" type="button" id="hp-copiar"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1-1a2.8 2.8 0 014 4l-1 1M9 11.5l-1 1a2.8 2.8 0 01-4-4l1-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Copiar link</span></button>
@@ -29,14 +31,57 @@
   </header>
 
   <div class="hp-tabs" role="tablist" aria-label="Seções">
-    <button class="hp-tab" type="button" role="tab" id="tab-conferencia" data-tab="conferencia" aria-controls="conferencia" aria-selected="true">Conferência no Maps</button>
+    <button class="hp-tab" type="button" role="tab" id="tab-visao" data-tab="visao" aria-controls="visao" aria-selected="true">Visão da rede</button>
+    <button class="hp-tab" type="button" role="tab" id="tab-conferencia" data-tab="conferencia" aria-controls="conferencia" aria-selected="false" tabindex="-1">Conferência no Maps</button>
     <button class="hp-tab" type="button" role="tab" id="tab-concorrencia" data-tab="concorrencia" aria-controls="concorrencia" aria-selected="false" tabindex="-1">Concorrência por loja</button>
   </div>
 
   <div id="hp-erro" class="hp-state is-error" role="alert" hidden></div>
 
+  <!-- Visão da rede -->
+  <section class="hp-panel" id="visao" role="tabpanel" aria-labelledby="tab-visao" tabindex="-1">
+    <p class="hp-take" id="vis-take">
+      A rede tem <b data-k="ativas" class="hp-skel">—</b> lojas ativas.
+      A mais cercada de concorrência é <b data-k="mais_pressao" class="hp-skel">—</b>, com <b data-k="mais_pressao_n" class="hp-skel">—</b> pastelarias a até 3 km.
+      Fichas no Google Maps a corrigir: <b data-k="fichas" class="hp-skel">—</b>.
+      Lojas com % de avaliações negativas acima da média dos vizinhos a até 3 km: <b data-k="negativas" class="hp-skel">—</b>.
+    </p>
+
+    <section class="hp-card" aria-labelledby="h-vis-ranking">
+      <h2 id="h-vis-ranking">Pressão competitiva</h2>
+      <p class="hp-note">Pastelarias a até 3 km de cada loja ativa. Ordem: mais pastelarias a até 3 km; no empate, mais pastelarias a até 1 km; depois, nome da loja. Clique ou toque numa barra para ver a concorrência da loja.</p>
+      <ul class="hp-legend">
+        <li><span class="hp-sw is-bar sw-pastel"></span>Pastelarias a até 1 km</li>
+        <li><span class="hp-sw is-bar sw-pastel-tint"></span>Pastelarias de 1 a 3 km</li>
+      </ul>
+      <div class="hp-chart ch-vis-ranking" id="vis-ranking"></div>
+      <h3 class="vis-sub">Lojas e vizinhos a até 3 km</h3>
+      <p class="hp-note">Densidade: concorrentes de qualquer tipo por km² no raio. Médias dos vizinhos contam só quem tem avaliações.</p>
+      <div class="hp-table-wrap"><table id="vis-tabela"></table></div>
+    </section>
+
+    <section class="hp-card" aria-labelledby="h-vis-dispersao">
+      <h2 id="h-vis-dispersao">Nota × avaliações</h2>
+      <p class="hp-note">Nota no Google (eixo vertical) e número de avaliações (eixo horizontal, em escala logarítmica: cada marca vale 10 vezes a anterior). A linha liga cada loja ativa à mediana dos vizinhos a até 3 km.</p>
+      <ul class="hp-legend">
+        <li><span class="hp-sw sw-loja"></span>Loja da rede</li>
+        <li id="vis-fora"><span class="hp-sw is-ring"></span>Loja fora de operação (inativa ou em implantação)</li>
+        <li><span class="hp-sw sw-vizinhos"></span>Mediana dos vizinhos a até 3 km</li>
+      </ul>
+      <div class="hp-chart ch-vis-dispersao" id="vis-dispersao"></div>
+      <details class="hp-alt" id="vis-dispersao-alt"></details>
+    </section>
+
+    <section class="hp-card" aria-labelledby="h-vis-fazer">
+      <h2 id="h-vis-fazer">O que fazer esta semana</h2>
+      <div class="vis-todo" id="vis-fichas"></div>
+      <div class="vis-todo" id="vis-negativas"></div>
+      <div class="vis-todo" id="vis-dias"></div>
+    </section>
+  </section>
+
   <!-- Conferência -->
-  <section class="hp-panel" id="conferencia" role="tabpanel" aria-labelledby="tab-conferencia" tabindex="-1">
+  <section class="hp-panel" id="conferencia" role="tabpanel" aria-labelledby="tab-conferencia" tabindex="-1" hidden>
     <p class="hp-take" id="conf-take">
       <b data-k="confere" class="hp-skel">—</b> das <b data-k="planilha" class="hp-skel">—</b> unidades da planilha batem com o Google Maps.
       <b data-k="divergencia" class="hp-skel">—</b> têm telefone, endereço ou status diferente na ficha.
@@ -78,6 +123,18 @@
       </div>
     </section>
 
+    <div class="hp-tools">
+      <label class="hp-ctrl-label" for="conf-situacao">Situação</label>
+      <select class="hp-select" id="conf-situacao"></select>
+      <span class="hp-note" id="conf-filtro-nota">O filtro vale para a lista de correções, o mapa, as avaliações e a tabela.</span>
+    </div>
+
+    <section class="hp-card" aria-labelledby="h-conf-acoes">
+      <h2 id="h-conf-acoes">O que corrigir</h2>
+      <p class="hp-note">Uma ação por pendência, montada com os dados da planilha e da ficha no Maps.</p>
+      <ul class="hp-acoes" id="conf-acoes"></ul>
+    </section>
+
     <div class="hp-grid">
       <section class="hp-card" aria-labelledby="h-conf-mapa">
         <h2 id="h-conf-mapa">Onde estão as unidades</h2>
@@ -117,44 +174,76 @@
 
   <!-- Concorrência -->
   <section class="hp-panel" id="concorrencia" role="tabpanel" aria-labelledby="tab-concorrencia" tabindex="-1" hidden>
-    <div class="hp-tools">
-      <label class="hp-ctrl-label" for="conc-loja">Loja</label>
-      <select class="hp-select" id="conc-loja"></select>
-      <span class="hp-note">Só lojas ativas. Concorrentes a até 5 km do endereço da planilha.</span>
+    <div class="hp-tools cf-bar" role="group" aria-label="Loja e filtros">
+      <label class="cf-field cf-loja"><span class="hp-ctrl-label">Loja</span><select class="hp-select" id="conc-loja"></select></label>
+      <label class="cf-field"><span class="hp-ctrl-label">Raio</span>
+        <select class="hp-select cf-select" id="conc-raio">
+          <option value="1">1 km</option>
+          <option value="3" selected>3 km</option>
+          <option value="5">5 km</option>
+        </select>
+      </label>
+      <label class="cf-field"><span class="hp-ctrl-label">Tipo</span>
+        <select class="hp-select cf-select" id="conc-tipo">
+          <option value="">Todos</option>
+          <option value="Pastelaria">Pastelaria</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </label>
+      <label class="cf-field"><span class="hp-ctrl-label">Anuncia</span>
+        <select class="hp-select cf-select" id="conc-anuncia">
+          <option value="">Todos</option>
+          <option value="sim">Anuncia: Meta ou Google</option>
+          <option value="nao">Não anuncia</option>
+          <option value="semsite">Sem site</option>
+          <option value="naover">Não verificado</option>
+        </select>
+      </label>
+      <label class="cf-field"><span class="hp-ctrl-label">Nota mínima</span>
+        <select class="hp-select cf-select" id="conc-nota">
+          <option value="0">Qualquer</option>
+          <option value="4">4,0+</option>
+          <option value="4.5">4,5+</option>
+        </select>
+      </label>
+      <label class="cf-check"><input type="checkbox" id="conc-domingo"> Abre domingo</label>
+      <button type="button" class="hp-btn cf-limpar" id="conc-limpar">Limpar filtros</button>
     </div>
+    <p class="hp-note">Só lojas ativas. Concorrentes a até 5 km do endereço da planilha. Os filtros valem para tudo abaixo; a loja nunca sai.</p>
 
-    <p class="hp-take" id="conc-take" aria-live="polite">
-      Há <b data-k="pastelarias_1km">—</b> pastelarias a até 1 km da loja e <b data-k="pastelarias_raio">—</b> a até 3 km.
-      Em número de avaliações no Google, a loja fica em <b data-k="posicao">—</b>º lugar entre os <b data-k="total">—</b> estabelecimentos a até 3 km, contando ela.
-      O concorrente com mais avaliações por perto é <b data-k="lider_nome">—</b>, com <b data-k="lider_avaliacoes">—</b>.
-      Anunciam com pixel do Meta ou tag do Google Ads: <b data-k="anunciam">—</b>.
+    <p class="hp-take" id="conc-take">
+      Há <b data-k="pastelarias_raio">—</b> pastelarias a até <span data-k="raio">—</span> km da loja, de <b data-k="ate_raio">—</b> estabelecimentos com esses filtros.
+      <span id="conc-take-pos">Em número de avaliações no Google, a loja fica em <b data-k="posicao">—</b> lugar entre os <b data-k="total">—</b>, contando ela.</span>
+      <span id="conc-take-semficha" hidden>A loja não tem ficha no Google Maps.</span>
+      <span id="conc-take-lider">O concorrente com mais avaliações por perto é <b data-k="lider_nome">—</b>, com <b data-k="lider_avaliacoes">—</b>.</span>
+      Anunciam com pixel do Meta ou tag do Google Ads: <b data-k="anunciam">—</b> de <span data-k="com_site">—</span> com site.
     </p>
 
     <section class="hp-tiles" id="conc-tiles" aria-label="Resumo da concorrência">
       <div class="hp-tile">
-        <span class="hp-tile-label">Pastelarias a até 1 km</span>
-        <span class="hp-num hp-skel" data-k="pastelarias_1km">—</span>
-        <span class="hp-tile-note"><span data-k="ate_1km">—</span> estabelecimentos no total</span>
-      </div>
-      <div class="hp-tile">
-        <span class="hp-tile-label">Pastelarias a até 3 km</span>
+        <span class="hp-tile-label"><span>Pastelarias a até <span data-k="raio">—</span> km</span></span>
         <span class="hp-num hp-skel" data-k="pastelarias_raio">—</span>
         <span class="hp-tile-note"><span data-k="ate_raio">—</span> estabelecimentos no total</span>
       </div>
       <div class="hp-tile">
+        <span class="hp-tile-label">Concorrentes por km²</span>
+        <span class="hp-num hp-skel" data-k="densidade">—</span>
+        <span class="hp-tile-note">A até 1 km: <span data-k="densidade_1km">—</span></span>
+      </div>
+      <div class="hp-tile">
         <span class="hp-tile-label">Nota da loja</span>
         <span class="hp-num hp-skel" data-k="nota_loja">—</span>
-        <span class="hp-tile-note">Média a até 3 km: <span data-k="nota_media">—</span></span>
+        <span class="hp-tile-note">Mediana dos vizinhos: <span data-k="nota_mediana">—</span></span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Avaliações da loja</span>
         <span class="hp-num hp-skel" data-k="avaliacoes_loja">—</span>
-        <span class="hp-tile-note">Posição: <span data-k="posicao">—</span>º de <span data-k="total">—</span></span>
+        <span class="hp-tile-note">Posição: <span data-k="posicao">—</span> de <span data-k="total">—</span></span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Avaliações negativas</span>
         <span class="hp-num hp-skel" data-k="neg_loja">—</span>
-        <span class="hp-tile-note">1 e 2 estrelas. Vizinhos: <span data-k="neg_media">—</span></span>
+        <span class="hp-tile-note">1 e 2 estrelas. Média dos vizinhos: <span data-k="neg_media">—</span></span>
       </div>
       <div class="hp-tile">
         <span class="hp-tile-label">Anunciam online</span>
@@ -166,17 +255,19 @@
     <div class="hp-grid">
       <section class="hp-card" aria-labelledby="h-conc-mapa">
         <h2 id="h-conc-mapa">Vizinhança da loja</h2>
-        <p class="hp-note">Anéis a 1, 3 e 5 km do endereço da loja. O tamanho do ponto acompanha o número de avaliações.</p>
+        <p class="hp-note">Anéis a 1, 3 e 5 km do endereço da loja. O tamanho do ponto acompanha o número de avaliações; números indicam pontos agrupados.</p>
         <ul class="hp-legend">
           <li><span class="hp-sw sw-loja"></span>Hora do Pastel</li>
           <li><span class="hp-sw sw-pastel"></span>Pastelaria</li>
           <li><span class="hp-sw sw-outro"></span>Outro (lanchonete, padaria, restaurante…)</li>
         </ul>
         <div class="hp-chart ch-conc-map" id="conc-mapa"></div>
+        <p class="hp-note" id="conc-mapa-nota" hidden></p>
+        <details class="hp-alt" id="conc-mapa-alt"></details>
       </section>
 
       <section class="hp-card" aria-labelledby="h-conc-barras">
-        <h2 id="h-conc-barras">Mais avaliados a até 3 km</h2>
+        <h2 id="h-conc-barras">Mais avaliados a até <span data-k="raio">3</span> km</h2>
         <p class="hp-note">Os estabelecimentos com mais avaliações no Google perto da loja, com a nota ao lado.</p>
         <ul class="hp-legend">
           <li><span class="hp-sw is-bar sw-loja"></span>Hora do Pastel</li>
@@ -188,15 +279,23 @@
       </section>
     </div>
 
-    <section class="hp-card" aria-labelledby="h-conc-dias">
-      <h2 id="h-conc-dias">Quem abre em cada dia</h2>
-      <p class="hp-note">Estabelecimentos a até 3 km abertos em cada dia da semana, pelo horário no Google. Abaixo, se a loja abre.</p>
+    <section class="hp-card" aria-labelledby="h-conc-comp">
+      <h2 id="h-conc-comp">Loja × vizinhos × rede</h2>
+      <p class="hp-note">Vizinhos: mediana dos concorrentes a até <span data-k="raio">3</span> km, com os filtros. Rede: mediana das lojas ativas.</p>
       <ul class="hp-legend">
-        <li><span class="hp-sw sw-loja"></span>Loja abre</li>
-        <li><span class="hp-sw is-ring"></span>Loja fechada</li>
+        <li><span class="hp-sw is-bar sw-loja"></span>Loja</li>
+        <li><span class="hp-sw is-bar sw-vizinhos"></span>Mediana dos vizinhos</li>
+        <li><span class="hp-sw is-bar sw-rede"></span>Mediana da rede</li>
       </ul>
-      <div class="hp-chart ch-conc-week" id="conc-semana"></div>
-      <details class="hp-alt" id="conc-semana-alt"></details>
+      <div class="hp-chart ch-conc-comp" id="conc-comp"></div>
+      <details class="hp-alt" id="conc-comp-alt"></details>
+    </section>
+
+    <section class="hp-card" aria-labelledby="h-conc-calor">
+      <h2 id="h-conc-calor">Quem abre em cada hora</h2>
+      <p class="hp-note">Vizinhos a até <span data-k="raio">3</span> km abertos em algum momento de cada hora, das 10h à meia-noite, pelo horário no Google. Só conta quem tem horário informado.</p>
+      <div class="hp-chart ch-conc-heat" id="conc-calor"></div>
+      <details class="hp-alt" id="conc-calor-alt"></details>
     </section>
 
     <section class="hp-card" aria-labelledby="h-conc-tabela">
@@ -204,8 +303,9 @@
       <p class="hp-note">Do mais perto para o mais longe. Distância em linha reta.</p>
       <div class="hp-tools">
         <input class="hp-search" id="conc-busca" type="search" placeholder="Buscar nome, categoria, endereço…" aria-label="Buscar concorrentes">
+        <button type="button" class="hp-btn" id="conc-csv">Baixar CSV</button>
       </div>
-      <div class="hp-table-wrap"><table id="conc-tabela" class="is-mid"></table></div>
+      <div class="hp-table-wrap"><table id="conc-tabela" class="is-wide"></table></div>
     </section>
   </section>
 
@@ -228,6 +328,14 @@
       <dd>O site do estabelecimento tem pixel do Meta ou tag do Google Ads. Mostra que a ferramenta está instalada, não que há campanha no ar. Sem site, não dá para saber.</dd>
       <dt>Limite da contagem</dt>
       <dd>O Google mostra os resultados mais relevantes, não todos. Em bairros com muita oferta, as contagens de concorrentes são um mínimo.</dd>
+      <dt>Vizinhos</dt>
+      <dd>Concorrentes a até 3 km da loja, de qualquer tipo, salvo quando os filtros da aba de concorrência dizem outra coisa. Médias e medianas contam só quem tem o dado (nota, avaliações, horário).</dd>
+      <dt>Densidade</dt>
+      <dd>Concorrentes no raio divididos pela área do círculo (π × raio²), em estabelecimentos por km².</dd>
+      <dt>Pressão competitiva</dt>
+      <dd>Lojas ativas ordenadas pelas pastelarias a até 3 km; no empate, pelas pastelarias a até 1 km.</dd>
+      <dt>Horários</dt>
+      <dd>Horário de funcionamento informado na ficha do Google, com os intervalos de cada dia (almoço e jantar contam separados). Um estabelecimento conta como aberto numa hora se abre em algum momento dela.</dd>
       <dt>Fora do painel</dt>
       <dd>CNPJ, razão social, e-mails e nomes de responsáveis da planilha, e o texto das avaliações, não foram incluídos.</dd>
     </dl>
