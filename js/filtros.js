@@ -31,3 +31,13 @@ export function descreverFiltros(f) {
   if (f.notaMin) partes.push(`nota ${String(f.notaMin.toFixed(1)).replace('.', ',')} ou mais`);
   return 'Concorrentes ' + partes.join(', ') + '.';
 }
+
+// Resumo curto para o botão "Filtros" no celular: "3 km · pastelarias · 4,5+".
+export function resumoFiltros(f) {
+  const partes = [`${f.raio} km`];
+  if (f.tipo) partes.push(f.tipo === 'Pastelaria' ? 'pastelarias' : 'outros');
+  if (f.anuncia) partes.push({ sim: 'anunciam', nao: 'não anunciam', semsite: 'sem site', naover: 'não verificado' }[f.anuncia]);
+  if (f.domingo) partes.push('domingo');
+  if (f.notaMin) partes.push(String(f.notaMin.toFixed(1)).replace('.', ',') + '+');
+  return partes.join(' · ');
+}

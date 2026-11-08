@@ -196,6 +196,11 @@
   <section class="hp-panel" id="concorrencia" role="tabpanel" aria-labelledby="tab-concorrencia" tabindex="-1" hidden>
     <div class="hp-tools cf-bar" role="group" aria-label="Loja e filtros">
       <label class="cf-field cf-loja"><span class="hp-ctrl-label">Loja</span><select class="hp-select" id="conc-loja"></select></label>
+      <button type="button" class="hp-btn cf-toggle" id="conc-filtros-btn" aria-expanded="false" aria-controls="conc-filtros">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M4.5 8h7M7 12h2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Filtros</span><span class="cf-resumo" id="conc-filtros-resumo"></span>
+      </button>
+      <div class="cf-filtros" id="conc-filtros">
       <label class="cf-field"><span class="hp-ctrl-label">Raio</span>
         <select class="hp-select cf-select" id="conc-raio">
           <option value="1">1 km</option>
@@ -228,6 +233,7 @@
       </label>
       <label class="cf-check"><input type="checkbox" id="conc-domingo"> Abre domingo</label>
       <button type="button" class="hp-btn cf-limpar" id="conc-limpar">Limpar filtros</button>
+      </div>
     </div>
     <p class="hp-note hp-print-hide">Só lojas ativas. Concorrentes a até 5 km do endereço da planilha. Os filtros valem para tudo abaixo; a loja nunca sai.</p>
     <p class="hp-print-title hp-print-filtros" id="conc-filtros-print"></p>

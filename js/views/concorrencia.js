@@ -4,7 +4,7 @@
 import { fill, mount, dataTable, altTable, h, stateMsg, announce, downloadCSV, isNarrow } from '../ui.js';
 import { num, nf0, nf2, fmtNota, fmtInt, fmtPct, fmtKm, clip, nameMax, norm, plural } from '../format.js';
 import { ativas, anuncia, media, mediana, vals } from '../data.js';
-import { FILTROS_PADRAO, filtrar, descreverFiltros } from '../filtros.js';
+import { FILTROS_PADRAO, filtrar, descreverFiltros, resumoFiltros } from '../filtros.js';
 import { vizinhancaMap } from '../charts/vizinhanca.js';
 import { carregaLeaflet, criaMapa } from '../charts/mapa-leaflet.js';
 import { hbars } from '../charts/bars.js';
@@ -61,8 +61,19 @@ export function initConcorrencia(data, { getLoja, setLoja }) {
   const lojas = ativas(data.unidades);
   rede = Object.fromEntries(['nota', 'avaliacoes', 'negativas_pct', 'pct_5_estrelas'].map((k) => [k, mediana(vals(lojas, k))]));
 
+  // Celular: os filtros ficam atrás do botão "Filtros", que mostra o resumo do que está valendo.
+  const btn = $('conc-filtros-btn');
+  const painel = $('conc-filtros');
+  const resumo = () => { $('conc-filtros-resumo').textContent = resumoFiltros(lerFiltros()); };
+  btn.addEventListener('click', () => {
+    const aberto = painel.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', String(aberto));
+  });
+  resumo();
+
   const aoFiltrar = () => {
     renderConcorrencia(data, getLoja());
+    resumo();
     const n = atual.filtrados.length;
     announce(nf0.format(n) + ' ' + plural(n, 'concorrente', 'concorrentes') + ' a até ' + lerFiltros().raio + ' km com esses filtros.');
   };
@@ -235,8 +246,8 @@ export function renderConcorrencia(data, cod) {
     { key: 'abre_domingo', label: 'Abre domingo', text: (r) => simNao(r.abre_domingo) },
     { key: 'fecha_depois_22h', label: 'Fecha depois das 22h', text: (r) => simNao(r.fecha_depois_22h) },
     { key: 'anuncia', label: 'Anuncia' },
-    { key: 'redes', label: 'Redes sociais' },
-    { key: 'endereco', label: 'Endereço' }
+    { key: 'redes', label: 'Redes sociais', wide: true },
+    { key: 'endereco', label: 'Endereço', wide: true }
   ];
   const q = norm($('conc-busca').value.trim());
   const lista = rows.filter((r) => !q || norm([r.nome, r.categoria, r.endereco, r.tipo, r.anuncia, r.redes].join(' ')).includes(q));

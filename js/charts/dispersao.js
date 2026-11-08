@@ -9,7 +9,8 @@ const d3 = window.d3;
 // lojas: [{ nota, av, ativa, label, r }]; medianas: [{ nota, av, loja, ... }] com `loja` apontando para o ponto da loja.
 export function dispersao(el, w, { lojas, medianas, lojaLines, medLines, label }) {
   el.replaceChildren();
-  const hgt = Math.round(Math.max(300, Math.min(440, w * 0.6)));
+  // No celular o gráfico fica mais alto que largo: as notas se espalham e os rótulos cabem.
+  const hgt = w < 500 ? Math.round(w * 1.15) : Math.round(Math.max(300, Math.min(440, w * 0.6)));
   const m = { t: 12, r: 16, b: 30, l: 34 };
   const all = lojas.concat(medianas);
   const lo = Math.floor((d3.min(all, (p) => p.nota) - 0.05) * 2) / 2;

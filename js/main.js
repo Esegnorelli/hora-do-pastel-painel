@@ -46,16 +46,23 @@ function go(route, { push = false, focus = false } = {}) {
   titulo();
 }
 
+// Com as abas grudadas no topo, trocar de aba lá embaixo levaria ao meio do painel novo: volta ao começo dele.
+function topoDoPainel(tab) {
+  const abas = document.querySelector('.hp-tabs');
+  const y = document.getElementById(tab).getBoundingClientRect().top + window.scrollY - abas.offsetHeight - 8;
+  if (window.scrollY > y) window.scrollTo({ top: Math.max(0, y) });
+}
+
 // Links da visão da rede: abrem outra aba como um clique na aba, com o foco e a rolagem no painel aberto.
 function ir(route) {
   go(route, { push: true });
   document.getElementById(route.tab).focus({ preventScroll: true });
-  document.querySelector('.hp-tabs').scrollIntoView({ block: 'start' });
+  topoDoPainel(route.tab);
   const loja = route.loja && data.unidades.find((r) => r.codigo === route.loja);
   announce(loja ? 'Concorrência da loja ' + loja.unidade : document.getElementById('tab-' + route.tab).textContent + ' aberta');
 }
 
-initTabs((tab) => go({ tab }, { push: true }));
+initTabs((tab) => { go({ tab }, { push: true }); topoDoPainel(tab); });
 window.addEventListener('hashchange', () => go(parseHash(location.hash)));
 window.addEventListener('popstate', () => go(parseHash(location.hash)));
 go(parseHash(location.hash));

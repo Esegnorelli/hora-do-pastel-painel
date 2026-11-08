@@ -191,7 +191,7 @@ export function dataTable(table, { columns, rows = [], sort = null, sortable = f
       mobileSel = h('select', { class: 'hp-select' });
       wrap.before(h('label', { class: 'hp-sort-mobile' }, h('span', { class: 'hp-ctrl-label', text: 'Ordenar por' }), mobileSel));
     }
-    mobileSel.replaceChildren(...(sort ? [] : [new Option('Ordem padrão', '')]), ...columns.flatMap((c) => [
+    mobileSel.replaceChildren(...(sort ? [] : [new Option('Ordem padrão', '')]), ...columns.filter((c) => c.mobile !== false).flatMap((c) => [
       new Option(c.label + (c.num ? ' (maior primeiro)' : ' (A–Z)'), c.key + ':' + (c.num ? 'desc' : 'asc')),
       new Option(c.label + (c.num ? ' (menor primeiro)' : ' (Z–A)'), c.key + ':' + (c.num ? 'asc' : 'desc'))
     ]));
@@ -242,7 +242,8 @@ export function dataTable(table, { columns, rows = [], sort = null, sortable = f
     tbody.replaceChildren(...list.slice(0, state.shown).map((r) => h('tr', null, columns.map((c) => {
       const v = c.text ? c.text(r) : r[c.key];
       const extra = c.cls ? c.cls(r) : '';
-      const td = h('td', { class: [c.num ? 'num' : '', c.lead ? 'is-lead' : '', extra || ''].join(' ').trim() || null, 'data-label': c.label });
+      const cls = [c.num ? 'num' : '', c.lead ? 'is-lead' : '', c.wide ? 'is-wide' : '', c.mobile === false ? 'no-mobile' : '', extra || ''].join(' ').trim();
+      const td = h('td', { class: cls || null, 'data-label': c.label });
       if (v instanceof Node) td.append(v); else td.textContent = v == null ? '' : String(v);
       return td;
     }))));
