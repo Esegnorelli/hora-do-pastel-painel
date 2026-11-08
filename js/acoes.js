@@ -28,45 +28,50 @@ export function verificacao(u) {
   };
 }
 
+// Ação verificada primeiro; depois as ações da conferência sobre assuntos que a pesquisa não respondeu.
 export function acoesDaUnidade(u) {
+  const conf = acoesPelaConferencia(u);
   const v = verificacao(u);
-  if (!v) return acoesPelaConferencia(u);
-  const out = [v.acao];
-  if (tem(u, 'Poucas avaliações') && !/avalia/i.test(v.acao)) out.push(...acoesPelaConferencia(u).filter((a) => a.startsWith('Peça avaliações')));
-  return out;
+  // Unidade que passou a conferir: a pesquisa antiga não vale mais.
+  if (!v || !PRECISA_ACAO.includes(u.situacao)) return conf.map((a) => a.texto);
+  const cobre = {
+    ficha: true,
+    telefone: Boolean(u.verificacao_telefone),
+    endereco: Boolean(u.verificacao_endereco),
+    status: v.status !== 'não confirmado',
+    avaliacoes: /avali/i.test(v.acao)
+  };
+  return [v.acao, ...conf.filter((a) => !cobre[a.assunto]).map((a) => a.texto)];
 }
 
 function acoesPelaConferencia(u) {
-  const out = [];
   if (u.situacao === 'Não encontrada') {
     const tel = telefonesPlanilha(u)[0];
-    out.push(`Crie ou reivindique a ficha no Perfil da Empresa no Google com o endereço ${u.endereco_planilha}${tel ? ` e o telefone ${tel}` : ''}.${avisoSem9(tel ? [tel] : [])}`);
-    return out;
+    return [{ assunto: 'ficha', texto: `Crie ou reivindique a ficha no Perfil da Empresa no Google com o endereço ${u.endereco_planilha}${tel ? ` e o telefone ${tel}` : ''}.${avisoSem9(tel ? [tel] : [])}` }];
   }
   if (u.situacao === 'Fora da planilha') {
-    out.push(`Descubra de quem é a ficha em ${u.endereco_maps}${u.telefone_maps ? `, telefone ${u.telefone_maps}` : ''}: se for da rede, inclua na planilha; se não for, peça ao Google para corrigir o nome.`);
-    return out;
+    return [{ assunto: 'ficha', texto: `Descubra de quem é a ficha em ${u.endereco_maps}${u.telefone_maps ? `, telefone ${u.telefone_maps}` : ''}: se for da rede, inclua na planilha; se não for, peça ao Google para corrigir o nome.` }];
   }
   if (u.status_rede === 'Inativa' && u.no_maps === 'sim') {
     // Loja inativa: corrigir telefone ou endereço não adianta; o que importa é a ficha deixar de aparecer como aberta.
-    out.push('A loja está inativa na planilha: marque a ficha como "fechada permanentemente" no Perfil da Empresa, ou atualize a planilha se a loja voltou a abrir.');
-    return out;
+    return [{ assunto: 'status', texto: 'A loja está inativa na planilha: marque a ficha como "fechada permanentemente" no Perfil da Empresa, ou atualize a planilha se a loja voltou a abrir.' }];
   }
+  const out = [];
   if (u.telefone_confere === 'não') {
     const tels = telefonesPlanilha(u);
     const alvo = tels.length > 1 ? `um dos telefones da planilha (${tels.join(' ou ')})` : tels[0];
-    out.push(`Atualize o telefone da ficha para ${alvo} (hoje está ${u.telefone_maps}), ou corrija a planilha se o número da ficha for o certo.${avisoSem9(tels)}`);
+    out.push({ assunto: 'telefone', texto: `Atualize o telefone da ficha para ${alvo} (hoje está ${u.telefone_maps}), ou corrija a planilha se o número da ficha for o certo.${avisoSem9(tels)}` });
   }
   if (u.endereco_confere === 'não') {
-    out.push(`Confira o endereço: a ficha diz ${u.endereco_maps}; a planilha, ${u.endereco_planilha}. Corrija o lado que estiver errado.`);
+    out.push({ assunto: 'endereco', texto: `Confira o endereço: a ficha diz ${u.endereco_maps}; a planilha, ${u.endereco_planilha}. Corrija o lado que estiver errado.` });
   }
   if (tem(u, 'Em implantação na planilha, mas já está no Maps')) {
     const n = num(u.avaliacoes);
-    out.push(`Atualize o status na planilha: a ficha já está no Maps${n != null ? ` com ${nf0.format(n)} avaliações` : ''}.`);
+    out.push({ assunto: 'status', texto: `Atualize o status na planilha: a ficha já está no Maps${n != null ? ` com ${nf0.format(n)} avaliações` : ''}.` });
   }
   if (tem(u, 'Poucas avaliações')) {
     const n = num(u.avaliacoes);
-    out.push(`Peça avaliações aos clientes: a ficha tem só ${n != null ? nf0.format(n) : 'poucas'}.`);
+    out.push({ assunto: 'avaliacoes', texto: `Peça avaliações aos clientes: a ficha tem só ${n != null ? nf0.format(n) : 'poucas'}.` });
   }
   return out;
 }

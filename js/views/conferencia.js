@@ -83,7 +83,7 @@ function drawActions(rows) {
 // num <details>, para a lista continuar curta.
 function evidencia(u) {
   const v = verificacao(u);
-  if (!v) return null;
+  if (!v || !PRECISA_ACAO.includes(u.situacao)) return null;
   return h('details', { class: 'hp-evidencia' },
     h('summary', { text: `Verificado na internet em ${v.data} · confiança ${v.confianca}` }),
     h('p', { text: v.resumo }),
@@ -140,7 +140,7 @@ function tableColumns() {
     { key: 'situacao', label: 'Situação', text: (r) => statusPill(r.situacao), sort: (r) => ORDEM_SITUACAO.indexOf(r.situacao) },
     { key: 'status_rede', label: 'Na rede' },
     { key: 'alertas', label: 'O que olhar' },
-    { key: 'verificacao_resumo', label: 'Na internet', text: (r) => (r.verificacao_resumo ? `${r.verificacao_resumo} (confiança ${r.verificacao_confianca})` : '') },
+    { key: 'verificacao_resumo', label: 'Na internet', text: (r) => (r.verificacao_resumo && PRECISA_ACAO.includes(r.situacao) ? `${r.verificacao_resumo} (confiança ${r.verificacao_confianca})` : '') },
     { key: 'endereco_planilha', label: 'Endereço na planilha' },
     { key: 'endereco_maps', label: 'Endereço no Maps', cls: diff('endereco_confere') },
     { key: 'telefone_planilha', label: 'Telefone na planilha' },
