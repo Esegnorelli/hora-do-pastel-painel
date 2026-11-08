@@ -6,11 +6,19 @@ const d3 = window.d3;
 
 const FILES = { unidades: 'data/unidades-maps.csv', concorrentes: 'data/concorrentes.csv' };
 
+// d3.csvParse monta os objetos com `new Function`, que a CSP do site bloqueia; csvParseRows não.
+function parseCSV(text) {
+  const [columns, ...rows] = d3.csvParseRows(text);
+  const out = rows.map((r) => Object.fromEntries(columns.map((c, i) => [c, r[i] ?? ''])));
+  out.columns = columns;
+  return out;
+}
+
 export async function loadData() {
   const [unidades, concorrentes] = await Promise.all(Object.values(FILES).map(async (url) => {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-    return d3.csvParse(await res.text());
+    return parseCSV(await res.text());
   }));
   const porLoja = d3.group(concorrentes, (r) => r.codigo);
   return { unidades, concorrentes, porLoja };
