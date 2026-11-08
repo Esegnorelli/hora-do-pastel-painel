@@ -4,7 +4,7 @@
 import { fill, mount, dataTable, altTable, h, stateMsg, announce, downloadCSV, isNarrow } from '../ui.js';
 import { num, nf0, nf2, fmtNota, fmtInt, fmtPct, fmtKm, clip, nameMax, norm, plural } from '../format.js';
 import { ativas, anuncia, media, mediana, vals } from '../data.js';
-import { FILTROS_PADRAO, filtrar } from '../filtros.js';
+import { FILTROS_PADRAO, filtrar, descreverFiltros } from '../filtros.js';
 import { vizinhancaMap } from '../charts/vizinhanca.js';
 import { carregaLeaflet, criaMapa } from '../charts/mapa-leaflet.js';
 import { hbars } from '../charts/bars.js';
@@ -149,6 +149,7 @@ export function renderConcorrencia(data, cod) {
   if (!loja) return;
   $('conc-loja').value = cod;
   const f = lerFiltros();
+  $('conc-filtros-print').textContent = descreverFiltros(f);
   const todos = (data.porLoja.get(cod) || []).slice().sort((a, b) => num(a.distancia_km) - num(b.distancia_km));
   const rows = filtrar(todos, f);
   atual = { cod, filtrados: rows };

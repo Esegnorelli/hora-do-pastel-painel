@@ -12,17 +12,25 @@
 
 html, body { background: #fff !important; }
 body { font-size: 9.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.hp { max-width: none; padding: 0; gap: 4mm; }
+.hp { max-width: none; padding: 0; gap: 3mm; }
 
 /* Fora do papel: controles, navegação e conteúdo repetido. */
 .hp-actions, .hp-tabs, .hp-tools, .hp-alt, .hp-method, .hp-more, .hp-sort-mobile, .hp-tip, #hp-live,
 .hp-print-hide, .leaflet-control-zoom, .leaflet-control-attribution a[href*="leafletjs"] { display: none !important; }
 .hp-print-title { display: block !important; margin: 1mm 0 0; font-weight: 600; font-size: 12pt; }
+.hp-print-filtros { font-weight: 400 !important; font-size: 10pt !important; margin: 0 !important; }
+.hp-chart { min-height: 0 !important; }
+.hp-leaflet, .hp-chart .leaflet-container { break-inside: avoid; }
+.hp-leaflet { height: 46mm !important; }
+.hp-note, .hp-legend, .hp-tile-label, .hp-tile-note { font-size: 7.5pt; }
+.hp-tile { gap: .5mm; }
+.hp-card .hp-chart svg { max-height: 46mm; }
+.hp-take { font-size: 9pt !important; line-height: 1.4; }
 
-.hp-head h1 { font-size: 16pt; }
-.hp-panel { gap: 4mm; }
+.hp-head h1 { font-size: 15pt; }
+.hp-panel { gap: 3mm; }
 .hp-card, .hp-tile { break-inside: avoid; border-color: #d6d5ce; }
-.hp-card { padding: 3mm; gap: 1.5mm; }
+.hp-card { padding: 2.5mm 3mm; gap: 1mm; }
 .hp-card h2 { font-size: 11pt; }
 .hp-tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2mm; }
 .hp-tile { padding: 2mm; }

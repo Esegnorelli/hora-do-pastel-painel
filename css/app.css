@@ -56,6 +56,9 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+/* Aba aberta por link, antes do JavaScript (ver o script no <head>): sem pulo de layout. */
+html[data-tab="conferencia"] #conferencia[hidden], html[data-tab="concorrencia"] #concorrencia[hidden] { display: flex !important; }
+html[data-tab="conferencia"] #visao, html[data-tab="concorrencia"] #visao { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); font-size: var(--fs-body); line-height: 1.45; overflow-x: hidden; }
 button, input, select { font: inherit; color: inherit; }
@@ -139,13 +142,10 @@ button, input, select { font: inherit; color: inherit; }
 .sw-loja { --sw: var(--c-loja); }
 .sw-vizinhos { --sw: var(--c-vizinhos); }
 .sw-rede { --sw: var(--c-rede); }
-.hp-open { fill: var(--ink); }
 .hp-closed { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
 .ch-units-map { --h: 16rem; }
 .ch-units-bars { --h: 20rem; }
-.ch-conc-map { --h: 22rem; }
 .ch-conc-bars { --h: 12rem; }
-.ch-conc-week { --h: 12.5rem; }
 .hp-lbl-strong { fill: var(--ink); font-size: 12px; font-weight: 600; }
 .hp-lbl-muted { fill: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
 
@@ -238,6 +238,9 @@ th[aria-sort="descending"] .hp-sort::after { content: "↓" / ""; color: var(--i
 .hp-acoes ul { margin: 0; padding-left: 1.1rem; font-size: var(--fs-caption); line-height: 1.5; }
 .hp-acoes ul li + li { margin-top: .2rem; }
 .hp-acoes-vazio { color: var(--ink-2); font-size: var(--fs-caption); }
+/* Altura aproximada da lista com os dados de hoje (9 pendências), reservada enquanto carrega: evita empurrar o mapa. */
+.hp-acoes:empty { min-height: 21rem; }
+@media (max-width: 40rem) { .hp-acoes:empty { min-height: 61rem; } }
 
 /* === Visão da rede === */
 .ch-vis-ranking { --h: 27rem; }

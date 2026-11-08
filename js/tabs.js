@@ -24,6 +24,8 @@ export function setHash(route, push = false) {
 }
 
 export function showTab(name, { focus = false } = {}) {
+  // A partir daqui as abas seguem o atributo hidden; a dica do script inicial (data-tab) sai.
+  delete document.documentElement.dataset.tab;
   document.querySelectorAll('.hp-tab').forEach((b) => {
     const on = b.dataset.tab === name;
     b.setAttribute('aria-selected', String(on));

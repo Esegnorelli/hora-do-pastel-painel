@@ -7,14 +7,34 @@
 <meta name="description" content="Uso interno da rede Hora do Pastel: fichas no Google Maps e concorrência ao redor de cada loja.">
 <meta name="color-scheme" content="light dark">
 <title>Unidades no Google Maps · Hora do Pastel</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preload" href="data/unidades-maps.csv" as="fetch" crossorigin>
 <link rel="preload" href="data/concorrentes.csv" as="fetch" crossorigin>
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/print.css" media="print">
-<script src="js/tema-inicial.js"></script>
+<!-- Antes da primeira pintura: tema salvo e aba do link (evita piscar e pulo de layout).
+     Se mudar este script, atualize o hash sha256 na CSP do vercel.json. -->
+<script>try{var t=localStorage.getItem('hp-tema');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}var a=location.hash.slice(1);document.documentElement.dataset.tab=/^loja-[0-9]{4}$/.test(a)?'concorrencia':a==='conferencia'||a==='concorrencia'?a:'visao'</script>
 <script defer src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
 <script type="module" src="js/main.js"></script>
+<link rel="modulepreload" href="js/data.js">
+<link rel="modulepreload" href="js/format.js">
+<link rel="modulepreload" href="js/ui.js">
+<link rel="modulepreload" href="js/tabs.js">
+<link rel="modulepreload" href="js/acoes.js">
+<link rel="modulepreload" href="js/filtros.js">
+<link rel="modulepreload" href="js/views/visao.js">
+<link rel="modulepreload" href="js/views/conferencia.js">
+<link rel="modulepreload" href="js/views/concorrencia.js">
+<link rel="modulepreload" href="js/charts/bars.js">
+<link rel="modulepreload" href="js/charts/ranking.js">
+<link rel="modulepreload" href="js/charts/dispersao.js">
+<link rel="modulepreload" href="js/charts/unidades-map.js">
+<link rel="modulepreload" href="js/charts/vizinhanca.js">
+<link rel="modulepreload" href="js/charts/mapa-leaflet.js">
+<link rel="modulepreload" href="js/charts/calor.js">
+<link rel="modulepreload" href="js/charts/comparacao.js">
 </head>
 <body>
 <div class="hp">
@@ -209,7 +229,8 @@
       <label class="cf-check"><input type="checkbox" id="conc-domingo"> Abre domingo</label>
       <button type="button" class="hp-btn cf-limpar" id="conc-limpar">Limpar filtros</button>
     </div>
-    <p class="hp-note">Só lojas ativas. Concorrentes a até 5 km do endereço da planilha. Os filtros valem para tudo abaixo; a loja nunca sai.</p>
+    <p class="hp-note hp-print-hide">Só lojas ativas. Concorrentes a até 5 km do endereço da planilha. Os filtros valem para tudo abaixo; a loja nunca sai.</p>
+    <p class="hp-print-title hp-print-filtros" id="conc-filtros-print"></p>
 
     <p class="hp-take" id="conc-take">
       Há <b data-k="pastelarias_raio">—</b> pastelarias a até <span data-k="raio">—</span> km da loja, de <b data-k="ate_raio">—</b> estabelecimentos com esses filtros.
@@ -298,7 +319,7 @@
       <details class="hp-alt" id="conc-calor-alt"></details>
     </section>
 
-    <section class="hp-card" aria-labelledby="h-conc-tabela">
+    <section class="hp-card hp-print-hide" aria-labelledby="h-conc-tabela">
       <h2 id="h-conc-tabela">Concorrentes da loja</h2>
       <p class="hp-note">Do mais perto para o mais longe. Distância em linha reta.</p>
       <div class="hp-tools">

@@ -22,6 +22,16 @@ function titulo() {
   document.title = texto + ' · Hora do Pastel';
 }
 
+// Cada aba é desenhada na primeira vez que aparece: abrir o painel não paga pelas abas escondidas.
+const desenhadas = new Set();
+function desenha(tab) {
+  if (!data || desenhadas.has(tab)) return;
+  desenhadas.add(tab);
+  if (tab === 'visao') renderVisao(data, { ir });
+  else if (tab === 'conferencia') renderConferencia(data);
+  else renderConcorrencia(data, state.loja);
+}
+
 function go(route, { push = false, focus = false } = {}) {
   state.tab = route.tab;
   const lojaMudou = route.loja && route.loja !== state.loja;
@@ -29,8 +39,9 @@ function go(route, { push = false, focus = false } = {}) {
   showTab(state.tab, { focus });
   if (data && lojaMudou) {
     state.loja = lojaValida(data, state.loja);
-    renderConcorrencia(data, state.loja);
+    if (desenhadas.has('concorrencia')) renderConcorrencia(data, state.loja);
   }
+  desenha(state.tab);
   setHash(state, push);
   titulo();
 }
@@ -61,8 +72,6 @@ try {
 }
 
 if (data) {
-  renderVisao(data, { ir });
-  renderConferencia(data);
   initConcorrencia(data, {
     getLoja: () => state.loja,
     setLoja: (cod) => {
@@ -75,7 +84,7 @@ if (data) {
     }
   });
   state.loja = lojaValida(data, state.loja);
-  renderConcorrencia(data, state.loja);
+  desenha(state.tab);
   setHash(state);
   titulo();
 }

@@ -58,6 +58,12 @@ export function criaMapa(el, L) {
     iconCreateFunction: (c) => L.divIcon({ html: h('span', { class: 'hp-cluster', text: nf0.format(c.getChildCount()) }), className: 'hp-mk', iconSize: [34, 34] })
   }).addTo(map);
   const loja = L.layerGroup().addTo(map);
+  // Na impressão o mapa muda de tamanho: recentra na loja no mesmo zoom (os tiles já baixados cobrem a área).
+  let centroAtual = null;
+  matchMedia('print').addEventListener('change', () => {
+    map.invalidateSize({ animate: false });
+    if (centroAtual) map.setView(centroAtual, map.getZoom(), { animate: false });
+  });
 
   // Os ícones são recriados a cada vez que entram no mapa (zoom, agrupamento); o nome acessível vai junto.
   map.on('layeradd', ({ layer }) => {
@@ -82,6 +88,7 @@ export function criaMapa(el, L) {
     update({ loja: u, todos, rows, raio, lojaLines, concLines }) {
       map.invalidateSize();
       const centro = L.latLng(num(u.lat), num(u.lon));
+      centroAtual = centro;
       aneis.clearLayers();
       for (const k of ANEIS) {
         L.circle(centro, { radius: k * 1000, className: 'hp-lring' + (k === raio ? ' is-on' : ''), fill: false, interactive: false }).addTo(aneis);

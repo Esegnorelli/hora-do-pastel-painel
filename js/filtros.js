@@ -20,3 +20,14 @@ export function filtrar(rows, f) {
     && (!f.domingo || r.abre_domingo === 'sim')
     && (!f.notaMin || (num(r.nota) ?? 0) >= f.notaMin));
 }
+
+const ANUNCIA_TEXTO = { sim: 'anunciam no Meta ou Google', nao: 'não anunciam', semsite: 'sem site', naover: 'anúncio não verificado' };
+
+// Frase com os filtros em vigor, para o relatório impresso.
+export function descreverFiltros(f) {
+  const partes = [`a até ${f.raio} km`, f.tipo ? (f.tipo === 'Pastelaria' ? 'só pastelarias' : 'só outros tipos') : 'todos os tipos'];
+  if (f.anuncia) partes.push(ANUNCIA_TEXTO[f.anuncia]);
+  if (f.domingo) partes.push('abrem domingo');
+  if (f.notaMin) partes.push(`nota ${String(f.notaMin.toFixed(1)).replace('.', ',')} ou mais`);
+  return 'Concorrentes ' + partes.join(', ') + '.';
+}
