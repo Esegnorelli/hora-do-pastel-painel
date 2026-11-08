@@ -16,10 +16,7 @@ entra na CSP pelo hash sha256; se mudar o script, recalcule o hash
 
 Links diretos: `#visao`, `#conferencia`, `#concorrencia`, `#loja-0002` (concorrência da loja 0002).
 
-Publicação: o mesmo código vai para dois projetos na Vercel.
-- `hora-do-pastel-painel.vercel.app` (repositório `hora-do-pastel-painel`): com login da Vercel.
-- `hora-do-pastel-painel-publico.vercel.app` (repositório privado `hora-do-pastel-painel-publico`): sem login, para quem tiver o link.
-
+Publicação: além deste projeto na Vercel (com login), há um segundo projeto, sem login, ligado a um repositório privado.
 `git push origin main` envia para os dois repositórios (o remoto `origin` tem os dois endereços de push).
 
 Não tem build. Para atualizar os dados, rode o pipeline (`python3 build_data.py`), confira e faça push: a Vercel publica sozinha.
