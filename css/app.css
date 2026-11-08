@@ -211,6 +211,8 @@ th[aria-sort="descending"] .hp-sort::after { content: "↓" / ""; color: var(--i
   .hp-actions { width: 100%; }
   .hp-actions .hp-btn { flex: 1 1 0; }
   .hp-tabs { display: grid; grid-template-columns: 1fr 1fr; }
+  /* Com número ímpar de abas, a última ocupa a linha inteira. */
+  .hp-tab:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .hp-tab { padding: .5rem .25rem; text-align: center; font-size: var(--fs-caption); }
   .hp-tools > * { flex: 1 1 100%; }
   .hp-select, .hp-search { width: 100%; min-width: 0; font-size: 1rem; }
@@ -263,7 +265,6 @@ th[aria-sort="descending"] .hp-sort::after { content: "↓" / ""; color: var(--i
 .vis-list li + li { margin-top: .3rem; }
 .vis-list .hp-pill { vertical-align: top; }
 @media (max-width: 40rem) {
-  .hp-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ch-vis-dispersao { --h: 19rem; }
 }
 

@@ -6,11 +6,18 @@ const tem = (u, alerta) => (u.alertas || '').split(';').map((s) => s.trim()).inc
 
 const telefonesPlanilha = (u) => (u.telefone_planilha || '').split(' / ').map((s) => s.trim()).filter(Boolean);
 
+// Celular com DDD e só 8 dígitos (ex.: "(51) 9983-0040"): número antigo, sem o 9 inicial. Não dá para mandar
+// colocar na ficha sem confirmar.
+const celularSem9 = (tel) => /^\(\d{2}\) [6-9]\d{3}-\d{4}$/.test(tel);
+const avisoSem9 = (tels) => (tels.some(celularSem9)
+  ? ' Confirme o número antes: na planilha ele está sem o 9 inicial de celular.'
+  : '');
+
 export function acoesDaUnidade(u) {
   const out = [];
   if (u.situacao === 'Não encontrada') {
     const tel = telefonesPlanilha(u)[0];
-    out.push(`Crie ou reivindique a ficha no Perfil da Empresa no Google com o endereço ${u.endereco_planilha}${tel ? ` e o telefone ${tel}` : ''}.`);
+    out.push(`Crie ou reivindique a ficha no Perfil da Empresa no Google com o endereço ${u.endereco_planilha}${tel ? ` e o telefone ${tel}` : ''}.${avisoSem9(tel ? [tel] : [])}`);
     return out;
   }
   if (u.situacao === 'Fora da planilha') {
@@ -25,7 +32,7 @@ export function acoesDaUnidade(u) {
   if (u.telefone_confere === 'não') {
     const tels = telefonesPlanilha(u);
     const alvo = tels.length > 1 ? `um dos telefones da planilha (${tels.join(' ou ')})` : tels[0];
-    out.push(`Atualize o telefone da ficha para ${alvo} (hoje está ${u.telefone_maps}), ou corrija a planilha se o número da ficha for o certo.`);
+    out.push(`Atualize o telefone da ficha para ${alvo} (hoje está ${u.telefone_maps}), ou corrija a planilha se o número da ficha for o certo.${avisoSem9(tels)}`);
   }
   if (u.endereco_confere === 'não') {
     out.push(`Confira o endereço: a ficha diz ${u.endereco_maps}; a planilha, ${u.endereco_planilha}. Corrija o lado que estiver errado.`);
